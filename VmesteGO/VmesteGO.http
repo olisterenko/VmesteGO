@@ -1,0 +1,6 @@
+@VmesteGO_HostAddress = http://localhost:5183
+
+GET {{VmesteGO_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
