@@ -19,4 +19,19 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Domain\Enums\" />
+      <Folder Include="Dto\Requests\" />
+      <Folder Include="Dto\Responses\" />
+      <Folder Include="Filters\" />
+      <Folder Include="Infrastructure\Configurations\" />
+      <Folder Include="Infrastructure\EntityConfigurations\" />
+      <Folder Include="Infrastructure\Extensions\" />
+      <Folder Include="Migrations\" />
+      <Folder Include="Options\" />
+      <Folder Include="Services\Interfaces\" />
+      <Folder Include="Specifications\" />
+      <Folder Include="Validators\" />
+    </ItemGroup>
+
 </Project>
