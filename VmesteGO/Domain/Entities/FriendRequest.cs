@@ -1,4 +1,6 @@
-﻿namespace VmesteGO.Domain.Entities;
+﻿using VmesteGO.Domain.Enums;
+
+namespace VmesteGO.Domain.Entities;
 
 public class FriendRequest : BaseEntity<int>
 {
@@ -6,5 +8,5 @@ public class FriendRequest : BaseEntity<int>
     public User Sender { get; set; } = null!;
     public int ReceiverId { get; set; }
     public User Receiver { get; set; } = null!;
-    public string Status { get; set; } // Possible values: "Pending", "Accepted", "Rejected"
+    public FriendRequestStatus Status { get; set; }
 }

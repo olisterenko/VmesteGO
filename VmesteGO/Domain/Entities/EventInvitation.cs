@@ -1,4 +1,6 @@
-﻿namespace VmesteGO.Domain.Entities;
+﻿using VmesteGO.Domain.Enums;
+
+namespace VmesteGO.Domain.Entities;
 
 public class EventInvitation : BaseEntity<int>
 {
@@ -8,5 +10,5 @@ public class EventInvitation : BaseEntity<int>
     public User Sender { get; set; } = null!;
     public int ReceiverId { get; set; }
     public User Receiver { get; set; } = null!;
-    public string Status { get; set; } // Possible values: "Pending", "Accepted", "Rejected"
+    public EventInvitationStatus Status { get; set; }
 }
