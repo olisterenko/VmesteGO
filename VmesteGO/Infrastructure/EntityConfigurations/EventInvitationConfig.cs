@@ -13,15 +13,18 @@ public class EventInvitationConfig : IEntityTypeConfiguration<EventInvitation>
         builder.HasKey(ei => ei.Id);
 
         builder.HasOne(ei => ei.Event)
-            .WithMany()
-            .HasForeignKey(ei => ei.EventId);
+            .WithMany(e => e.EventInvitations)
+            .HasForeignKey(ei => ei.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ei => ei.Sender)
             .WithMany()
-            .HasForeignKey(ei => ei.SenderId);
+            .HasForeignKey(ei => ei.SenderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ei => ei.Receiver)
             .WithMany()
-            .HasForeignKey(ei => ei.ReceiverId);
+            .HasForeignKey(ei => ei.ReceiverId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

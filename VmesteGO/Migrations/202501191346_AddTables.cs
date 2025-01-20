@@ -7,13 +7,27 @@ public class AddTables : ForwardOnlyMigration
 {
     public override void Up()
     {
-        Create.Table("User")
+        Create.Table("Users")
             .WithColumn("Id").AsInt32().NotNullable().PrimaryKey().Identity()
             .WithColumn("Username").AsString(255).NotNullable().Unique()
             .WithColumn("PasswordHash").AsString(511).NotNullable()
             .WithColumn("Salt").AsString(511).NotNullable()
-            .WithColumn("ImageUrl").AsString(255).NotNullable();
+            .WithColumn("ImageUrl").AsString(255).NotNullable()
+            .WithColumn("Role").AsString(20).NotNullable();;
 
+
+        Create.Table("Events")
+            .WithColumn("Id").AsInt32().PrimaryKey().Identity()
+            .WithColumn("Title").AsString().NotNullable()
+            .WithColumn("Dates").AsDateTime().NotNullable()
+            .WithColumn("Location").AsString().NotNullable()
+            .WithColumn("Description").AsString().NotNullable()
+            .WithColumn("AgeRestriction").AsInt32().NotNullable()
+            .WithColumn("Price").AsDecimal().NotNullable()
+            .WithColumn("IsPrivate").AsBoolean().NotNullable()
+            .WithColumn("ExternalId").AsInt32().Nullable()
+            .WithColumn("Creator").AsString().NotNullable();
+        
         
         Create.Table("Comments")
             .WithColumn("Id").AsInt32().PrimaryKey().Identity()
@@ -30,21 +44,8 @@ public class AddTables : ForwardOnlyMigration
         Create.ForeignKey("FK_Comments_Users")
             .FromTable("Comments").ForeignColumn("AuthorId")
             .ToTable("Users").PrimaryColumn("Id");
-        
-        
-        Create.Table("Events")
-            .WithColumn("Id").AsInt32().PrimaryKey().Identity()
-            .WithColumn("Title").AsString().NotNullable()
-            .WithColumn("Dates").AsDateTime().NotNullable()
-            .WithColumn("Location").AsString().NotNullable()
-            .WithColumn("Description").AsString().NotNullable()
-            .WithColumn("AgeRestriction").AsInt32().NotNullable()
-            .WithColumn("Price").AsDecimal().NotNullable()
-            .WithColumn("IsPrivate").AsBoolean().NotNullable()
-            .WithColumn("ExternalId").AsInt32().Nullable()
-            .WithColumn("Creator").AsString().NotNullable();
-        
-        
+
+
         Create.Table("Categories")
             .WithColumn("Id").AsInt32().PrimaryKey().Identity()
             .WithColumn("Name").AsString().NotNullable();
@@ -156,7 +157,6 @@ public class AddTables : ForwardOnlyMigration
             .WithColumn("Id").AsInt32().PrimaryKey().Identity()
             .WithColumn("UserId").AsInt32().NotNullable()
             .WithColumn("EventId").AsInt32().NotNullable()
-            .WithColumn("UserRating").AsInt32().NotNullable()
             .WithColumn("EventStatus").AsString(20).NotNullable();
 
         // Foreign key constraints

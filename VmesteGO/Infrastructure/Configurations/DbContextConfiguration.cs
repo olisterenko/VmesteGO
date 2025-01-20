@@ -28,7 +28,9 @@ public static class DbContextConfiguration
                 {
                     npgsqlOptions.EnableRetryOnFailure(2, maxDelay, RetriedPostgresExceptions);
                     npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                });
+                })
+                .LogTo(Console.WriteLine, LogLevel.Information)
+                .EnableSensitiveDataLogging();
         });
 
         return services;
