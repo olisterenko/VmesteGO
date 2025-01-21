@@ -11,6 +11,9 @@ public class FriendRequestConfig : IEntityTypeConfiguration<FriendRequest>
         builder.ToTable("FriendRequests");
 
         builder.HasKey(fr => fr.Id);
+        
+        builder.Property(c => c.CreatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.HasOne(fr => fr.Sender)
             .WithMany(u => u.SentFriendRequests)

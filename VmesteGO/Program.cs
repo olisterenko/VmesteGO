@@ -18,13 +18,13 @@ services.AddSwaggerGen();
 services.ConfigureSettings(configuration);
 services.AddDbContextWithRepositories(configuration);
 services.AddFluentMigrator(configuration);
-services.AddServices(configuration);
+services.AddServices();
 
-services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+services.AddHttpContextAccessor();
 
 
 // Configure JWT authentication
-builder.Services.AddAuthentication(options =>
+services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -40,6 +40,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false
     };
 });
+services.AddAuthorization();
 
 var app = builder.Build();
 

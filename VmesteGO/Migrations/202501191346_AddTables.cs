@@ -113,6 +113,7 @@ public class AddTables : ForwardOnlyMigration
             .WithColumn("Id").AsInt32().PrimaryKey().Identity()
             .WithColumn("SenderId").AsInt32().NotNullable()
             .WithColumn("ReceiverId").AsInt32().NotNullable()
+            .WithColumn("CreatedAt").AsDateTime().NotNullable().WithDefault(SystemMethods.CurrentDateTime)
             .WithColumn("Status").AsString(20).NotNullable();
 
         Create.ForeignKey("FK_FriendRequests_Users_Sender")

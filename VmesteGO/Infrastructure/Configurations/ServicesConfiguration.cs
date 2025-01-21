@@ -1,4 +1,5 @@
-﻿using VmesteGO.Services;
+﻿using VmesteGO;
+using VmesteGO.Services;
 using VmesteGO.Services.Interfaces;
 
 // ReSharper disable once CheckNamespace
@@ -6,10 +7,14 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class ServicesConfiguration
 {
-    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IJwtService, JwtService>();
+        
+        services.AddScoped<IFriendService, FriendService>();
+        services.AddScoped<IUserContext, UserContext>();
+        services.AddAutoMapper(typeof(MappingProfile));
         
         return services;
     }

@@ -4,5 +4,5 @@ namespace VmesteGO.Services.Interfaces;
 
 public interface IJwtService
 {
-    string GenerateToken(string username, Role role);
+    string GenerateToken(int userId, string username, Role role);
 }

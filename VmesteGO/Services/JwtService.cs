@@ -18,10 +18,11 @@ public class JwtService : IJwtService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateToken(string username, Role role)
+    public string GenerateToken(int userId, string username, Role role)
     {
         var claims = new[]
         {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Name, username),
             new Claim(ClaimTypes.Role, role.ToString())
         };

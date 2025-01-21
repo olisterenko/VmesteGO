@@ -36,13 +36,13 @@ public class UserService : IUserService
             PasswordHash = passwordHash,
             Salt = salt,
             ImageUrl = userRegisterRequest.ImageUrl ?? "someUrl", // TODO: заменить на норм урл
-            Role = Role.User // TODO: enum?
+            Role = Role.User 
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return _jwtService.GenerateToken(user.Username, user.Role);
+        return _jwtService.GenerateToken(user.Id, user.Username, user.Role);
     }
 
     public async Task<string> LoginUser(UserLoginRequest userLoginRequest)
@@ -55,6 +55,6 @@ public class UserService : IUserService
             throw new Exception("Invalid username or password.");
         }
 
-        return _jwtService.GenerateToken(user.Username, user.Role);
+        return _jwtService.GenerateToken(user.Id, user.Username, user.Role);
     }
 }
