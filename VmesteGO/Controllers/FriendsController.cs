@@ -6,7 +6,7 @@ using VmesteGO.Services.Interfaces;
 namespace VmesteGO.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("friends")]
 [Authorize]
 public class FriendsController : ControllerBase
 {

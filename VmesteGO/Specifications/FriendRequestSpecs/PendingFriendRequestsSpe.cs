@@ -10,6 +10,7 @@ public sealed class PendingFriendRequestsSpec: Specification<FriendRequest>
     {
         Query
             .Where(fr => fr.ReceiverId == userId && fr.Status == FriendRequestStatus.Pending)
-            .Include(fr => fr.Sender);
+            .Include(fr => fr.Sender)
+            .Include(fr => fr.Receiver);
     }
 }

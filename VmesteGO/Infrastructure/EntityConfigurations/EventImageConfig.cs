@@ -13,11 +13,11 @@ public class EventImageConfig : IEntityTypeConfiguration<EventImage>
         builder.HasKey(ei => ei.Id);
 
         builder.Property(ei => ei.ImageUrl)
-            .IsRequired(); // Ensure that the Image URL is required
+            .IsRequired();
 
         builder.HasOne(ei => ei.Event)
             .WithMany(e => e.EventImages)
             .HasForeignKey(ei => ei.EventId)
-            .OnDelete(DeleteBehavior.Cascade); // Specify behavior for cascading deletes
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

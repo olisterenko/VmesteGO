@@ -121,6 +121,8 @@ public class FriendService : IFriendService
             fr.Id,
             fr.SenderId,
             fr.Sender.Username,
+            fr.ReceiverId,
+            fr.Receiver.Username,
             fr.CreatedAt,
             fr.Status
         ));
@@ -135,6 +137,8 @@ public class FriendService : IFriendService
             fr.Id,
             fr.SenderId,
             fr.Sender.Username,
+            fr.ReceiverId,
+            fr.Receiver.Username,
             fr.CreatedAt,
             fr.Status
         ));
@@ -149,6 +153,7 @@ public class FriendService : IFriendService
         if (friendship == null)
             throw new KeyNotFoundException("Friendship not found.");
 
+        // TODO: request status to pending
         _friendRepository.Delete(friendship);
         await _friendRepository.SaveChangesAsync();
     }

@@ -23,7 +23,7 @@ public class UserConfig : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Role)
             .IsRequired()
-            .HasConversion<string>();;
+            .HasConversion<string>();
 
         builder.Property(u => u.ImageUrl)
             .IsRequired();

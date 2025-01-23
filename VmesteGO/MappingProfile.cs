@@ -14,6 +14,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.FriendUserId));
 
         CreateMap<FriendRequest, FriendRequestResponse>()
-            .ForMember(dest => dest.SenderUsername, opt => opt.MapFrom(src => src.Sender.Username));
+            .ForMember(friendRequestResponse => friendRequestResponse.SenderUsername, expression => expression.MapFrom(src => src.Sender.Username))
+            .ForMember(friendRequestResponse => friendRequestResponse.ReceiverUsername, expression => expression.MapFrom(src => src.Receiver.Username));
     }
 }

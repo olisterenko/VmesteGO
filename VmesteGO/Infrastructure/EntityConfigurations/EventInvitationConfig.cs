@@ -26,5 +26,9 @@ public class EventInvitationConfig : IEntityTypeConfiguration<EventInvitation>
             .WithMany()
             .HasForeignKey(ei => ei.ReceiverId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.Property(invite => invite.Status)
+            .IsRequired()
+            .HasConversion<string>();
     }
 }

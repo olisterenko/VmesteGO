@@ -9,6 +9,7 @@ public sealed class SentFriendRequestsSpec: Specification<FriendRequest>
     {
         Query
             .Where(fr => fr.SenderId == userId)
-            .Include(fr => fr.Receiver);
+            .Include(fr => fr.Receiver)
+            .Include(fr => fr.Sender);
     }
 }

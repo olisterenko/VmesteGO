@@ -22,5 +22,9 @@ public class FriendRequestConfig : IEntityTypeConfiguration<FriendRequest>
         builder.HasOne(fr => fr.Receiver)
             .WithMany(u => u.ReceivedFriendRequests)
             .HasForeignKey(fr => fr.ReceiverId);
+        
+        builder.Property(request => request.Status)
+            .IsRequired()
+            .HasConversion<string>();
     }
 }

@@ -5,7 +5,7 @@ using VmesteGO.Services.Interfaces;
 namespace VmesteGO.Controllers;
 
 [ApiController]
-[Route("api/auth")]
+[Route("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
