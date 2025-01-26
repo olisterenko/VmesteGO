@@ -8,6 +8,8 @@ public sealed class CheckExistingFriendRequestSpec : Specification<FriendRequest
     public CheckExistingFriendRequestSpec(int senderId, int receiverId)
     {
         Query
-            .Where(fr => fr.SenderId == senderId && fr.ReceiverId == receiverId);
+            .Where(f =>
+                (f.SenderId == senderId && f.ReceiverId == receiverId) ||
+                (f.SenderId == receiverId && f.ReceiverId == senderId));
     }
 }

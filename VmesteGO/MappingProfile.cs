@@ -8,10 +8,10 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Friend, FriendResponse>()
-            .ForMember(dest => dest.FriendUsername, opt => opt.MapFrom(src => src.FriendUser.Username))
-            .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.FriendUser.ImageUrl))
-            .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.FriendUserId));
+        CreateMap<FriendRequest, FriendResponse>()
+            .ForMember(dest => dest.FriendUsername, opt => opt.MapFrom(src => src.Receiver.Username))
+            .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.Receiver.ImageUrl))
+            .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.ReceiverId));
 
         CreateMap<FriendRequest, FriendRequestResponse>()
             .ForMember(friendRequestResponse => friendRequestResponse.SenderUsername, expression => expression.MapFrom(src => src.Sender.Username))

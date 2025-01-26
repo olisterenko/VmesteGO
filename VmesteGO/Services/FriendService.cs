@@ -4,25 +4,21 @@ using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Responses;
 using VmesteGO.Services.Interfaces;
 using VmesteGO.Specifications.FriendRequestSpecs;
-using VmesteGO.Specifications.FriendSpecs;
 
 namespace VmesteGO.Services;
 
 public class FriendService : IFriendService
 {
     private readonly IRepository<FriendRequest> _friendRequestRepository;
-    private readonly IRepository<Friend> _friendRepository;
     private readonly IRepository<User> _userRepository;
     private readonly IMapper _mapper;
 
     public FriendService(
         IRepository<FriendRequest> friendRequestRepository,
-        IRepository<Friend> friendRepository,
         IRepository<User> userRepository,
         IMapper mapper)
     {
         _friendRequestRepository = friendRequestRepository;
-        _friendRepository = friendRepository;
         _userRepository = userRepository;
         _mapper = mapper;
     }
@@ -38,8 +34,8 @@ public class FriendService : IFriendService
         if (sender == null || receiver == null)
             throw new KeyNotFoundException("Sender or receiver not found.");
 
-        var existingFriendship = await _friendRepository.FirstOrDefaultAsync(
-            new CheckExistingFriendshipSpec(senderId, receiverId));
+        var existingFriendship = await _friendRequestRepository.FirstOrDefaultAsync(
+            new CheckExistingFriendRequestSpec(senderId, receiverId));
 
         if (existingFriendship != null)
             throw new InvalidOperationException("You are already friends or a request is pending.");
@@ -58,7 +54,7 @@ public class FriendService : IFriendService
     public async Task AcceptFriendRequestAsync(int receiverId, int requestId)
     {
         var friendRequest = await _friendRequestRepository.GetByIdAsync(requestId)
-            ?? throw new KeyNotFoundException("Friend request not found.");
+                            ?? throw new KeyNotFoundException("Friend request not found.");
 
         if (friendRequest.ReceiverId != receiverId)
             throw new UnauthorizedAccessException("You are not authorized to accept this friend request.");
@@ -68,22 +64,12 @@ public class FriendService : IFriendService
 
         friendRequest.Status = FriendRequestStatus.Accepted;
         await _friendRequestRepository.SaveChangesAsync();
-
-        var friendship = new Friend
-        {
-            UserId = friendRequest.SenderId,
-            FriendUserId = friendRequest.ReceiverId
-        };
-        await _friendRepository.AddAsync(friendship);
-
-        await _friendRequestRepository.SaveChangesAsync();
-        await _friendRepository.SaveChangesAsync();
     }
 
     public async Task RejectFriendRequestAsync(int receiverId, int requestId)
     {
         var friendRequest = await _friendRequestRepository.GetByIdAsync(requestId)
-            ?? throw new KeyNotFoundException("Friend request not found.");
+                            ?? throw new KeyNotFoundException("Friend request not found.");
 
         if (friendRequest.ReceiverId != receiverId)
             throw new UnauthorizedAccessException("You are not authorized to reject this friend request.");
@@ -93,20 +79,18 @@ public class FriendService : IFriendService
 
         friendRequest.Status = FriendRequestStatus.Rejected;
         await _friendRequestRepository.SaveChangesAsync();
-
-        await _friendRequestRepository.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<FriendResponse>> GetFriendsAsync(int userId)
     {
         var specification = new FriendsOfUserSpec(userId);
-        var friends = await _friendRepository.ListAsync(specification);
+        var friends = await _friendRequestRepository.ListAsync(specification);
 
         var friendResponses = friends.Select(f => new FriendResponse(
             f.Id,
-            f.FriendUserId == userId ? f.UserId : f.FriendUserId,
-            f.FriendUserId == userId ? f.User.Username : f.FriendUser.Username,
-            f.FriendUserId == userId ? f.User.ImageUrl : f.FriendUser.ImageUrl
+            f.ReceiverId == userId ? f.SenderId : f.ReceiverId,
+            f.ReceiverId == userId ? f.Sender.Username : f.Receiver.Username,
+            f.ReceiverId == userId ? f.Sender.ImageUrl : f.Receiver.ImageUrl
         ));
 
         return friendResponses;
@@ -148,14 +132,21 @@ public class FriendService : IFriendService
     {
         var specification = new CheckExistingFriendshipSpec(userId, friendId);
 
-        var friendship = await _friendRepository.FirstOrDefaultAsync(specification);
+        var friendship = await _friendRequestRepository.FirstOrDefaultAsync(specification);
 
         if (friendship == null)
             throw new KeyNotFoundException("Friendship not found.");
 
-        // TODO: request status to pending
-        _friendRepository.Delete(friendship);
-        await _friendRepository.SaveChangesAsync();
+        if (userId == friendship.SenderId)
+        {
+            friendship.Status = FriendRequestStatus.Pending;
+        }
+
+        if (userId == friendship.ReceiverId)
+        {
+            friendship.Status = FriendRequestStatus.Rejected;
+        }
+
+        await _friendRequestRepository.SaveChangesAsync();
     }
 }
-

@@ -27,10 +27,6 @@ public class UserConfig : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.ImageUrl)
             .IsRequired();
-        
-        builder.HasMany(u => u.Friends)
-            .WithOne(f => f.User)
-            .HasForeignKey(f => f.UserId);
 
         builder.HasMany(u => u.SentFriendRequests)
             .WithOne(fr => fr.Sender)

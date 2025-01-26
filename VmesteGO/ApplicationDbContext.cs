@@ -12,7 +12,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<EventCategory> EventCategories => Set<EventCategory>();
     public DbSet<EventImage> EventImages => Set<EventImage>();
     public DbSet<EventInvitation> EventInvitations => Set<EventInvitation>();
-    public DbSet<Friend> Friends => Set<Friend>();
     public DbSet<FriendRequest> FriendRequests => Set<FriendRequest>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<User> Users => Set<User>();
