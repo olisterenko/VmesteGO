@@ -16,6 +16,8 @@ public static class ServicesConfiguration
         services.AddScoped<IUserContext, UserContext>();
         services.AddAutoMapper(typeof(MappingProfile));
         
+        services.AddScoped<IEventService, EventService>();
+        
         return services;
     }
 }
