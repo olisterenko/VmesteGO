@@ -10,5 +10,5 @@ public class UserEvent : BaseEntity<int>
     public int EventId { get; set; }
     public Event Event { get; set; } = null!;
     
-    public EventStatus EventStatus { get; set; } // TODO: маппинг?
+    public EventStatus EventStatus { get; set; } 
 }

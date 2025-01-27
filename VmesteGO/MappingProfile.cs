@@ -1,5 +1,6 @@
 using AutoMapper;
 using VmesteGO.Domain.Entities;
+using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
 using VmesteGO.Dto.Responses;
 
@@ -26,5 +27,17 @@ public class MappingProfile : Profile
 
         CreateMap<CreateEventRequest, Event>();
         CreateMap<UpdateEventRequest, Event>();
+        
+        
+        CreateMap<EventInvitation, InvitationResponse>()
+            .ForMember(dest => dest.EventTitle, opt => opt.MapFrom(src => src.Event.Title))
+            .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender.Username)) // Assuming User has Username
+            .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.Username));
+
+        CreateMap<CreateInvitationRequest, EventInvitation>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EventInvitationStatus.Pending));
+
+        CreateMap<RespondInvitationResponse, EventInvitation>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
     }
 }
