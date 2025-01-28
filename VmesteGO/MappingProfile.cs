@@ -39,5 +39,22 @@ public class MappingProfile : Profile
 
         CreateMap<RespondInvitationResponse, EventInvitation>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
+        
+        
+        CreateMap<UserRegisterRequest, User>()
+            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
+            .ForMember(dest => dest.Salt, opt => opt.Ignore())
+            .ForMember(dest => dest.SentFriendRequests, opt => opt.Ignore())
+            .ForMember(dest => dest.ReceivedFriendRequests, opt => opt.Ignore())
+            .ForMember(dest => dest.SentEventInvitations, opt => opt.Ignore())
+            .ForMember(dest => dest.ReceivedEventInvitations, opt => opt.Ignore())
+            .ForMember(dest => dest.Notifications, opt => opt.Ignore())
+            .ForMember(dest => dest.Comments, opt => opt.Ignore())
+            .ForMember(dest => dest.UserEvents, opt => opt.Ignore());
+
+        CreateMap<UserUpdateRequest, User>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        CreateMap<User, UserResponse>();
     }
 }

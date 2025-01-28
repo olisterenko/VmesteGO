@@ -40,7 +40,11 @@ services.AddAuthentication(options =>
         ValidateAudience = false
     };
 });
-services.AddAuthorization();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+});
 
 var app = builder.Build();
 
