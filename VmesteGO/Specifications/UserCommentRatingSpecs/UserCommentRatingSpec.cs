@@ -3,9 +3,9 @@ using VmesteGO.Domain.Entities;
 
 namespace VmesteGO.Specifications.UserCommentRatingSpecs;
 
-public sealed class UserRatingCommentSpec : Specification<UserCommentRating>, ISingleResultSpecification<UserCommentRating>
+public sealed class UserCommentRatingSpec : Specification<UserCommentRating>, ISingleResultSpecification<UserCommentRating>
 {
-    public UserRatingCommentSpec(int userId, int commentId)
+    public UserCommentRatingSpec(int userId, int commentId)
     {
         Query
             .Where(urc => urc.UserId == userId && urc.CommentId == commentId);

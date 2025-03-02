@@ -20,8 +20,8 @@ namespace VmesteGO.Controllers;
             _userContext = userContext;
         }
         
-        [HttpGet("{chapterId:int}")] // TODO: подумать тут с авторизацией (как и везде блин)
-        public async Task<List<GetCommentResponse>> GetComments(int chapterId)
+        [HttpGet("{eventId:int}")] // TODO: подумать тут с авторизацией (как и везде блин)
+        public async Task<List<GetCommentResponse>> GetComments(int eventId)
         {
             var userId = _userContext.UserId;
 
@@ -29,7 +29,7 @@ namespace VmesteGO.Controllers;
                 new GetCommentRequest
                 {
                     UserId = userId,
-                    ChapterId = chapterId
+                    EventId = eventId
                 }
             );
         }

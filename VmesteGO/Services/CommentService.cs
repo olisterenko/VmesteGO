@@ -10,20 +10,20 @@ namespace VmesteGO.Services;
 public class CommentService : ICommentService
 {
     private readonly IRepository<Comment> _commentRepository;
-    private readonly IRepository<UserCommentRating> _userRatingCommentRepository;
+    private readonly IRepository<UserCommentRating> _userCommentRatingRepository;
 
     public CommentService(
         IRepository<Comment> commentRepository,
-        IRepository<UserCommentRating> userRatingCommentRepository)
+        IRepository<UserCommentRating> userCommentRatingRepository)
     {
         _commentRepository = commentRepository;
-        _userRatingCommentRepository = userRatingCommentRepository;
+        _userCommentRatingRepository = userCommentRatingRepository;
     }
 
     public async Task<List<GetCommentResponse>> GetComments(GetCommentRequest commentRequest)
     {
         var comments = await _commentRepository
-            .ListAsync(new CommentWithUserRatingSpec(commentRequest.ChapterId));
+            .ListAsync(new CommentWithUserRatingSpec(commentRequest.EventId));
 
         return comments
             .Select(comment => GetCommentResponse(commentRequest, comment))
@@ -46,24 +46,24 @@ public class CommentService : ICommentService
 
     public async Task RateComment(int userId, int commentId, bool isPositive)
     {
-        var userRatingComment =
-            await _userRatingCommentRepository.FirstOrDefaultAsync(new UserRatingCommentSpec(userId, commentId));
+        var userCommentRating =
+            await _userCommentRatingRepository.FirstOrDefaultAsync(new UserCommentRatingSpec(userId, commentId));
 
-        if (userRatingComment is null)
+        if (userCommentRating is null)
         {
-            userRatingComment = new UserCommentRating
+            userCommentRating = new UserCommentRating
             {
                 CommentId = commentId,
                 UserId = userId,
                 UserRating = isPositive ? 1 : -1
             };
 
-            await _userRatingCommentRepository.AddAsync(userRatingComment);
+            await _userCommentRatingRepository.AddAsync(userCommentRating);
         }
 
-        userRatingComment.UserRating = isPositive ? 1 : -1;
+        userCommentRating.UserRating = isPositive ? 1 : -1;
 
-        await _userRatingCommentRepository.SaveChangesAsync();
+        await _userCommentRatingRepository.SaveChangesAsync();
     }
 
     private GetCommentResponse GetCommentResponse(GetCommentRequest commentRequest, Comment comment)

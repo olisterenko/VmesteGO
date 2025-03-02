@@ -3,5 +3,5 @@
 public class GetCommentRequest
 {
     public int UserId { get; set; }
-    public int ChapterId { get; set; }
+    public int EventId { get; set; }
 }
