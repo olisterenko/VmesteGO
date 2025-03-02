@@ -6,5 +6,5 @@ public class UserCommentRating : BaseEntity<int>
     public User User { get; set; } = null!;
     public int CommentId { get; set; }
     public Comment Comment { get; set; } = null!;
-    public bool IsPositive { get; set; }
+    public int UserRating { get; set; }
 }

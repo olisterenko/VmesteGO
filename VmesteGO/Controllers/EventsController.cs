@@ -21,6 +21,7 @@ public class EventsController : ControllerBase
         _logger = logger;
     }
 
+    // TODO: как-то тут переделать, чтобы в параметры эвентСтатус и айдишник пользователя подпихивать. Простой список в книжках подглядеть
     /// <summary>
     /// Retrieves all events. Optionally includes private events if requested by an admin.
     /// </summary>
@@ -42,6 +43,12 @@ public class EventsController : ControllerBase
         var events = await _eventService.GetAllEventsAsync(includePrivate);
         return Ok(events);
     }
+    
+    // TODO: список мероприятий друзей
+    
+    // TODO: поиск мероприятия
+    
+    // TODO: смена пользовательского статуса мероприятия
 
     /// <summary>
     /// Retrieves a specific event by its ID.

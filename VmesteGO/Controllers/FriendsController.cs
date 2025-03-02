@@ -42,6 +42,8 @@ public class FriendsController : ControllerBase
         await _friendService.RejectFriendRequestAsync(userId, requestId);
         return Ok(new { message = "Friend request rejected." });
     }
+    
+    // TODO: отменить отправку заявки
 
     [HttpGet("friends")]
     public async Task<IActionResult> GetFriends()

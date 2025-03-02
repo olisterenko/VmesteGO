@@ -39,13 +39,15 @@ public class EventInvitationsController : ControllerBase
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of invitations.</returns>
-    [HttpGet("mine")]
+    [HttpGet("sent")]
     public async Task<IActionResult> GetMyInvitations(CancellationToken cancellationToken)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var invitations = await _invitationService.GetInvitationsForUserAsync(userId, cancellationToken);
         return Ok(invitations);
     }
+    
+    // TODO: список исходящих заявок
 
     /// <summary>
     /// Accept an invitation.
@@ -76,4 +78,6 @@ public class EventInvitationsController : ControllerBase
             cancellationToken);
         return Ok(new { message = "Invitation rejected" });
     }
+    
+    // TODO: отменить приглашение
 }

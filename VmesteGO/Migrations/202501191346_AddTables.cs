@@ -132,7 +132,6 @@ public class AddTables : ForwardOnlyMigration
             .WithColumn("CreatedAt").AsDateTime().NotNullable().WithDefault(SystemMethods.CurrentDateTime)
             .WithColumn("IsRead").AsBoolean().NotNullable().WithDefaultValue(false);
 
-        // Foreign key constraints
         Create.ForeignKey("FK_Notifications_Users")
             .FromTable("Notifications").ForeignColumn("UserId")
             .ToTable("Users").PrimaryColumn("Id");
@@ -142,9 +141,8 @@ public class AddTables : ForwardOnlyMigration
             .WithColumn("Id").AsInt32().PrimaryKey().Identity()
             .WithColumn("UserId").AsInt32().NotNullable()
             .WithColumn("CommentId").AsInt32().NotNullable()
-            .WithColumn("IsPositive").AsBoolean().NotNullable();
+            .WithColumn("UserRating").AsInt32().NotNullable();
 
-        // Foreign key constraints
         Create.ForeignKey("FK_UserCommentRatings_Users")
             .FromTable("UserCommentRatings").ForeignColumn("UserId")
             .ToTable("Users").PrimaryColumn("Id");
