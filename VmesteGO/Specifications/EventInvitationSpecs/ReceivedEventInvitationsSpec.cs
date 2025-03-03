@@ -3,9 +3,9 @@ using VmesteGO.Domain.Entities;
 
 namespace VmesteGO.Specifications.EventInvitationSpecs;
 
-public sealed class EventInvitationsForReceiverSpec : Specification<EventInvitation>
+public sealed class ReceivedEventInvitationsSpec : Specification<EventInvitation>
 {
-    public EventInvitationsForReceiverSpec(int receiverId)
+    public ReceivedEventInvitationsSpec(int receiverId)
     {
         Query.Where(ei => ei.ReceiverId == receiverId)
             .Include(ei => ei.Event)

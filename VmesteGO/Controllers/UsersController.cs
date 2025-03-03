@@ -56,13 +56,18 @@ public class UsersController : ControllerBase
 
         if (currentUserId != id && currentUserRole != Role.Admin.ToString())
             return Forbid();
-        
+
         var deleted = await _userService.DeleteUserAsync(id);
         if (!deleted)
             return BadRequest();
 
         return NoContent();
     }
-    
-    // TODO: поиск пользователя
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request, CancellationToken cancellationToken)
+    {
+        var users = await _userService.SearchUsersAsync(request, cancellationToken);
+        return Ok(users);
+    }
 }

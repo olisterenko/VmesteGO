@@ -1,4 +1,3 @@
-using VmesteGO.Domain.Entities;
 using VmesteGO.Dto.Requests;
 using VmesteGO.Dto.Responses;
 
@@ -12,4 +11,5 @@ public interface IUserService
     Task<IEnumerable<UserResponse>> GetAllUsersAsync();
     Task<UserResponse> UpdateUserAsync(int id, UserUpdateRequest request);
     Task<bool> DeleteUserAsync(int id);
+    Task<List<UserResponse>> SearchUsersAsync(UserSearchRequest request, CancellationToken cancellationToken);
 }

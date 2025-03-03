@@ -149,4 +149,14 @@ public class FriendService : IFriendService
 
         await _friendRequestRepository.SaveChangesAsync();
     }
+
+    public async Task RevokeFriendRequestAsync(int requestId, int userId, CancellationToken cancellationToken)
+    {
+        var request = await _friendRequestRepository.GetByIdAsync(requestId, cancellationToken);
+
+        if (request.SenderId != userId)
+            throw new UnauthorizedAccessException("You are not authorized to revoke to this invitation");
+
+        await _friendRequestRepository.DeleteAsync(request, cancellationToken);
+    }
 }

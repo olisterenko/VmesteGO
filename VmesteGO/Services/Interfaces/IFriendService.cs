@@ -11,4 +11,5 @@ public interface IFriendService
     Task<IEnumerable<FriendRequestResponse>> GetPendingFriendRequestsAsync(int userId);
     Task<IEnumerable<FriendRequestResponse>> GetSentFriendRequestsAsync(int userId);
     Task RemoveFriendAsync(int userId, int friendId);
+    Task RevokeFriendRequestAsync(int requestId, int userId, CancellationToken cancellationToken);
 }

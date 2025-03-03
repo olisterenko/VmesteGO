@@ -27,7 +27,7 @@ public class FriendsController : ControllerBase
         return Ok(new { message = "Friend request sent." });
     }
 
-    [HttpPost("requests/{requestId}/accept")]
+    [HttpPost("requests/{requestId:int}/accept")]
     public async Task<IActionResult> AcceptFriendRequest(int requestId)
     {
         var userId = _userContext.UserId;
@@ -35,15 +35,21 @@ public class FriendsController : ControllerBase
         return Ok(new { message = "Friend request accepted." });
     }
 
-    [HttpPost("requests/{requestId}/reject")]
+    [HttpPost("requests/{requestId:int}/reject")]
     public async Task<IActionResult> RejectFriendRequest(int requestId)
     {
         var userId = _userContext.UserId;
         await _friendService.RejectFriendRequestAsync(userId, requestId);
         return Ok(new { message = "Friend request rejected." });
     }
-    
-    // TODO: отменить отправку заявки
+
+    [HttpDelete("requests/{requestId:int}")]
+    public async Task<IActionResult> RevokeFriendRequest(int requestId, CancellationToken cancellationToken)
+    {
+        var userId = _userContext.UserId;
+        await _friendService.RevokeFriendRequestAsync(requestId, userId, cancellationToken);
+        return Ok(new { message = "Friend request revoked" });
+    }
 
     [HttpGet("friends")]
     public async Task<IActionResult> GetFriends()
@@ -69,7 +75,7 @@ public class FriendsController : ControllerBase
         return Ok(requests);
     }
 
-    [HttpDelete("friends/{friendId}")]
+    [HttpDelete("friends/{friendId:int}")]
     public async Task<IActionResult> RemoveFriend(int friendId)
     {
         var userId = _userContext.UserId;

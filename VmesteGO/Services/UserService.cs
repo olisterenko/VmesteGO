@@ -108,4 +108,12 @@ public class UserService : IUserService
         await _userRepository.SaveChangesAsync();
         return true;
     }
+
+    public async Task<List<UserResponse>> SearchUsersAsync(
+        UserSearchRequest request,
+        CancellationToken cancellationToken)
+    {
+        var spec = new UserSearchSpec(request.Username, request.Page, request.PageSize);
+        return await _userRepository.ListAsync(spec, cancellationToken);
+    }
 }
