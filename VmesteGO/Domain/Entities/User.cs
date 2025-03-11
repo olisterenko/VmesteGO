@@ -16,14 +16,4 @@ public class User : BaseEntity<int>
     public List<Notification> Notifications { get; set; } = [];
     public List<Comment> Comments { get; set; } = [];
     public List<UserEvent> UserEvents { get; set; } = [];
-
-    public List<User> Friends =>
-        SentFriendRequests
-            .Where(fr => fr.Status == FriendRequestStatus.Accepted)
-            .Select(fr => fr.Receiver)
-            .Union(
-                ReceivedFriendRequests
-                    .Where(fr => fr.Status == FriendRequestStatus.Accepted)
-                    .Select(fr => fr.Sender)
-            ).ToList(); // TODO: rm mb?
 }
