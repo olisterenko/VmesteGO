@@ -11,18 +11,15 @@ namespace VmesteGO.Services;
 
 public class UserService : IUserService
 {
-    private readonly ApplicationDbContext _context; // TODO: get rid of it
     private readonly IRepository<User> _userRepository;
     private readonly IMapper _mapper;
     private readonly IJwtService _jwtService;
 
     public UserService(
-        ApplicationDbContext context,
         IJwtService jwtService,
         IRepository<User> userRepository,
         IMapper mapper)
     {
-        _context = context;
         _jwtService = jwtService;
         _userRepository = userRepository;
         _mapper = mapper;
@@ -30,8 +27,8 @@ public class UserService : IUserService
 
     public async Task<string> RegisterUser(UserRegisterRequest userRegisterRequest)
     {
-        var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == userRegisterRequest.Username);
+        var userSpec = new UserByUsernameSpec(userRegisterRequest.Username);
+        var existingUser = await _userRepository.FirstOrDefaultAsync(userSpec);
 
         if (existingUser != null)
         {
@@ -50,16 +47,15 @@ public class UserService : IUserService
             Role = Role.User
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.AddAsync(user);
 
         return _jwtService.GenerateToken(user.Id, user.Username, user.Role);
     }
 
     public async Task<string> LoginUser(UserLoginRequest userLoginRequest)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == userLoginRequest.Username); // TODO: переделать под спецификации?
+        var userSpec = new UserByUsernameSpec(userLoginRequest.Username);
+        var user = await _userRepository.FirstOrDefaultAsync(userSpec);
 
         if (user == null || !PasswordHelper.VerifyPassword(user.PasswordHash, user.Salt, userLoginRequest.Password))
         {

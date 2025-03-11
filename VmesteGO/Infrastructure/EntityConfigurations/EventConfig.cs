@@ -29,5 +29,25 @@ public class EventConfig : IEntityTypeConfiguration<Event>
 
         builder.Property(e => e.IsPrivate)
             .IsRequired();
+        
+        builder.HasOne(e => e.Creator)
+            .WithMany()
+            .HasForeignKey(e => e.CreatorId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(e => e.EventCategories)
+            .WithOne(ec => ec.Event)
+            .HasForeignKey(ec => ec.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(e => e.EventImages)
+            .WithOne(ei => ei.Event)
+            .HasForeignKey(ei => ei.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(e => e.Comments)
+            .WithOne(c => c.Event)
+            .HasForeignKey(c => c.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

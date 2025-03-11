@@ -21,12 +21,9 @@ public class CommentConfig : IEntityTypeConfiguration<Comment>
         builder.Property(c => c.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        builder.HasOne(c => c.Event)
-            .WithMany(e => e.Comments)
-            .HasForeignKey(c => c.EventId);
-
         builder.HasOne(c => c.Author)
             .WithMany(u => u.Comments)
-            .HasForeignKey(c => c.AuthorId);
+            .HasForeignKey(c => c.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

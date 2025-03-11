@@ -14,10 +14,12 @@ public class UserEventConfig : IEntityTypeConfiguration<UserEvent>
 
         builder.HasOne(ue => ue.User)
             .WithMany(u => u.UserEvents)
-            .HasForeignKey(ue => ue.UserId);
+            .HasForeignKey(ue => ue.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ue => ue.Event)
             .WithMany()
-            .HasForeignKey(ue => ue.EventId);
+            .HasForeignKey(ue => ue.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

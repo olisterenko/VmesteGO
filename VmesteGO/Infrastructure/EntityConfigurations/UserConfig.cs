@@ -30,30 +30,27 @@ public class UserConfig : IEntityTypeConfiguration<User>
 
         builder.HasMany(u => u.SentFriendRequests)
             .WithOne(fr => fr.Sender)
-            .HasForeignKey(fr => fr.SenderId); 
+            .HasForeignKey(fr => fr.SenderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(u => u.ReceivedFriendRequests)
-            .WithOne(fr => fr.Receiver) 
-            .HasForeignKey(fr => fr.ReceiverId);
+            .WithOne(fr => fr.Receiver)
+            .HasForeignKey(fr => fr.ReceiverId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(u => u.SentEventInvitations)
-            .WithOne(ei => ei.Sender) 
-            .HasForeignKey(ei => ei.SenderId); 
+            .WithOne(ei => ei.Sender)
+            .HasForeignKey(ei => ei.SenderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(u => u.ReceivedEventInvitations)
             .WithOne(ei => ei.Receiver)
-            .HasForeignKey(ei => ei.ReceiverId); 
+            .HasForeignKey(ei => ei.ReceiverId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(u => u.Notifications)
             .WithOne(n => n.User)
-            .HasForeignKey(n => n.UserId); 
-
-        builder.HasMany(u => u.Comments)
-            .WithOne(c => c.Author) 
-            .HasForeignKey(c => c.AuthorId); 
-
-        builder.HasMany(u => u.UserEvents)
-            .WithOne(ue => ue.User) 
-            .HasForeignKey(ue => ue.UserId);
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
