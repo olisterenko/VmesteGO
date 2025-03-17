@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VmesteGO.Domain.Enums;
@@ -38,8 +39,8 @@ public class UsersController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<UserResponse>> UpdateUser(int id, UserUpdateRequest request)
     {
-        var currentUserId = int.Parse(User.FindFirst("id")?.Value ?? "0");
-        var currentUserRole = User.FindFirst("role")?.Value;
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"); // TODO: заменить на UserContext
+        var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
         if (currentUserId != id && currentUserRole != Role.Admin.ToString())
             return Forbid();
@@ -51,8 +52,8 @@ public class UsersController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        var currentUserId = int.Parse(User.FindFirst("id")?.Value ?? "0");
-        var currentUserRole = User.FindFirst("role")?.Value;
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
         if (currentUserId != id && currentUserRole != Role.Admin.ToString())
             return Forbid();
