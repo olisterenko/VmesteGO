@@ -25,7 +25,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.EventCategories.Select(ec => ec.Category.Name)))
             .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.EventImages.Select(ei => ei.ImageUrl)));
 
-        CreateMap<CreateEventRequest, Event>();
+        CreateMap<CreateEventRequest, Event>(); // TODO: починить мапперы
         CreateMap<UpdateEventRequest, Event>();
         
         

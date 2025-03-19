@@ -7,7 +7,7 @@ using VmesteGO.Services.Interfaces;
 namespace VmesteGO.Controllers;
 
     [ApiController]
-    [Route("api/comments")]
+    [Route("comments")]
     [Authorize]
     public class CommentsController : ControllerBase
     {
@@ -49,4 +49,6 @@ namespace VmesteGO.Controllers;
 
             await _commentService.RateComment(userId, commentId, isPositive);
         }
+        
+        // TODO: удаление комментариев
     }

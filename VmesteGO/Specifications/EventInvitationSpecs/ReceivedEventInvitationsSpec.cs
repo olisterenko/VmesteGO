@@ -9,6 +9,7 @@ public sealed class ReceivedEventInvitationsSpec : Specification<EventInvitation
     {
         Query.Where(ei => ei.ReceiverId == receiverId)
             .Include(ei => ei.Event)
-            .Include(ei => ei.Sender);
+            .Include(ei => ei.Sender)
+            .Include(ei => ei.Receiver);
     }
 }

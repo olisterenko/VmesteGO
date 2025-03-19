@@ -38,7 +38,7 @@ public class CommentService : ICommentService
             Text = postCommentRequest.Text,
             AuthorId = userId,
             Rating = 0,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
         };
 
         await _commentRepository.AddAsync(comment);

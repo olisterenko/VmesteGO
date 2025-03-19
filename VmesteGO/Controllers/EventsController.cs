@@ -31,14 +31,15 @@ public class EventsController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<EventResponse>>> GetEvents([FromQuery] bool includePrivate = false)
     {
-        if (includePrivate)
+        // TODO: переделать
+        /*if (includePrivate)
         {
             // Ensure the requesting user is admin
             if (User.Identity?.IsAuthenticated != true || !User.IsInRole("admin"))
             {
                 return Forbid();
             }
-        }
+        }*/ 
 
         var events = await _eventService.GetAllEventsAsync(includePrivate);
         return Ok(events);

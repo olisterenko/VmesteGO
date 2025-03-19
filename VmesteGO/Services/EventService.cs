@@ -60,7 +60,7 @@ public class EventService : IEventService
         }
 
         var evt = _mapper.Map<Event>(createDto);
-        evt.CreatorId = creatorId;
+        evt.CreatorId = creatorId; // TODO: Creator Entity
 
         if (createDto.EventCategoryIds.Count != 0)
         {
@@ -88,7 +88,7 @@ public class EventService : IEventService
     
     public async Task<EventResponse> UpdateEventAsync(int id, UpdateEventRequest updateDto, int userId, Role role)
     {
-        var evt = await _eventRepository.GetByIdAsync(id);
+        var evt = await _eventRepository.GetByIdAsync(id); // TODO: spec for categories and images
         if (evt == null)
         {
             throw new KeyNotFoundException($"Event with id {id} not found."); // TODO: NotFoundException and filter

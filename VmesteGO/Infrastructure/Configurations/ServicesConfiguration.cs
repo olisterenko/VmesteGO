@@ -20,6 +20,8 @@ public static class ServicesConfiguration
         
         services.AddScoped<ICommentService, CommentService>();
         
+        services.AddScoped<IEventInvitationService, EventInvitationService>();
+        
         return services;
     }
 }
