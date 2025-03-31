@@ -21,5 +21,9 @@ public class UserEventConfig : IEntityTypeConfiguration<UserEvent>
             .WithMany()
             .HasForeignKey(ue => ue.EventId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.Property(ue => ue.EventStatus)
+            .IsRequired()
+            .HasConversion<string>();
     }
 }

@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VmesteGO.Dto.Requests;
+using VmesteGO.Dto.Responses;
 using VmesteGO.Services.Interfaces;
 
 namespace VmesteGO.Controllers;
@@ -81,5 +83,19 @@ public class FriendsController : ControllerBase
         var userId = _userContext.UserId;
         await _friendService.RemoveFriendAsync(userId, friendId);
         return Ok(new { message = "Friend removed." });
+    }
+    
+    [HttpGet("events")]
+    public async Task<ActionResult<IEnumerable<FriendEventResponse>>> GetFriendsEvents()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var events = await _friendService.GetFriendsEventsAsync(userId);
+        return Ok(events);
     }
 }

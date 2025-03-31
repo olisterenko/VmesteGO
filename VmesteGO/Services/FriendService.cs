@@ -4,6 +4,7 @@ using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Responses;
 using VmesteGO.Services.Interfaces;
 using VmesteGO.Specifications.FriendRequestSpecs;
+using VmesteGO.Specifications.UserEventSpecs;
 
 namespace VmesteGO.Services;
 
@@ -11,15 +12,18 @@ public class FriendService : IFriendService
 {
     private readonly IRepository<FriendRequest> _friendRequestRepository;
     private readonly IRepository<User> _userRepository;
+    private readonly IRepository<UserEvent> _userEventRepository;
     private readonly IMapper _mapper;
 
     public FriendService(
         IRepository<FriendRequest> friendRequestRepository,
         IRepository<User> userRepository,
+        IRepository<UserEvent> userEventRepository,
         IMapper mapper)
     {
         _friendRequestRepository = friendRequestRepository;
         _userRepository = userRepository;
+        _userEventRepository = userEventRepository;
         _mapper = mapper;
     }
 
@@ -158,5 +162,27 @@ public class FriendService : IFriendService
             throw new UnauthorizedAccessException("You are not authorized to revoke to this invitation");
 
         await _friendRequestRepository.DeleteAsync(request, cancellationToken);
+    }
+
+    public async Task<IEnumerable<FriendEventResponse>> GetFriendsEventsAsync(int userId)
+    {
+        var specification = new FriendsOfUserSpec(userId);
+        var friends = await _friendRequestRepository.ListAsync(specification);
+
+        if (friends.Count == 0) return [];
+        
+        var friendIds = friends.Select(f => f.ReceiverId == userId ? f.SenderId : f.ReceiverId).Distinct();
+        var userEvents = await _userEventRepository.ListAsync(new FriendsEventsSpecification(friendIds));
+
+        var groupedEvents = userEvents
+            .GroupBy(ea => ea.Event)
+            .Select(g => new FriendEventResponse
+            {
+                EventResponse = _mapper.Map<EventResponse>(g.Key),
+                Friends = g.Select(ea => _mapper.Map<UserResponse>(ea.User)).Distinct()
+            })
+            .ToList();
+
+        return groupedEvents;
     }
 }

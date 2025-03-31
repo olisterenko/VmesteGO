@@ -45,11 +45,28 @@ public class EventsController : ControllerBase
         return Ok(events);
     }
     
-    // TODO: список мероприятий друзей
-    
     // TODO: поиск мероприятия
     
-    // TODO: смена пользовательского статуса мероприятия
+    [HttpPost("{eventId:int}/status")]
+    public async Task<ActionResult> ChangeEventStatus(int eventId, [FromBody] EventStatus eventStatus)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+        
+        await _eventService.ChangeEventStatus(
+            new ChangeEventStatusRequest
+            {
+                UserId = userId,
+                EventId = eventId,
+                NewEventStatus = eventStatus
+            });
+        
+        return Ok();
+    }
 
     /// <summary>
     /// Retrieves a specific event by its ID.
@@ -124,7 +141,7 @@ public class EventsController : ControllerBase
             return Unauthorized();
         }
 
-        if (!int.TryParse(userIdClaim, out int userId))
+        if (!int.TryParse(userIdClaim, out var userId))
         {
             return Unauthorized();
         }

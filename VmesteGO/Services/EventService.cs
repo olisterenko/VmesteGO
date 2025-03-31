@@ -1,5 +1,6 @@
 using Ardalis.Specification;
 using AutoMapper;
+using VmesteGO.Controllers;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
@@ -7,6 +8,7 @@ using VmesteGO.Dto.Responses;
 using VmesteGO.Services.Interfaces;
 using VmesteGO.Specifications.CategorySpecs;
 using VmesteGO.Specifications.EventSpecs;
+using VmesteGO.Specifications.UserEventSpecs;
 
 namespace VmesteGO.Services;
 
@@ -15,18 +17,21 @@ public class EventService : IEventService
     private readonly IRepository<Event> _eventRepository;
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<Category> _categoryRepository;
+    private readonly IRepository<UserEvent> _userEventRepository;
     private readonly IMapper _mapper;
 
     public EventService(
         IRepository<Event> eventRepository,
         IRepository<User> userRepository,
         IRepository<Category> categoryRepository,
+        IRepository<UserEvent> userEventRepository,
         IMapper mapper)
     {
         _eventRepository = eventRepository;
         _userRepository = userRepository;
         _categoryRepository = categoryRepository;
         _mapper = mapper;
+        _userEventRepository = userEventRepository;
     }
     
     public async Task<EventResponse> GetEventByIdAsync(int id)
@@ -142,5 +147,40 @@ public class EventService : IEventService
 
         _eventRepository.Delete(evt);
         await _eventRepository.SaveChangesAsync();
+    }
+
+    public async Task ChangeEventStatus(ChangeEventStatusRequest changeEventStatusRequest)
+    {
+        var userEvent = await _userEventRepository
+            .FirstOrDefaultAsync(new UserEventByUserAndEventSpec(changeEventStatusRequest.UserId, changeEventStatusRequest.EventId));
+
+        if (userEvent is null && changeEventStatusRequest.NewEventStatus != EventStatus.NotGoing)
+        {
+            userEvent = new UserEvent
+            {
+                EventId = changeEventStatusRequest.EventId,
+                UserId = changeEventStatusRequest.UserId,
+                EventStatus = changeEventStatusRequest.NewEventStatus
+            };
+
+            await _userEventRepository.AddAsync(userEvent);
+
+            return;
+        }
+
+        if (userEvent is null)
+        {
+            return;
+        }
+
+        if (changeEventStatusRequest.NewEventStatus == EventStatus.NotGoing)
+        {
+            await _userEventRepository.DeleteAsync(userEvent);
+
+            return;
+        }
+
+        userEvent.EventStatus = changeEventStatusRequest.NewEventStatus;
+        await _userEventRepository.SaveChangesAsync();
     }
 }
