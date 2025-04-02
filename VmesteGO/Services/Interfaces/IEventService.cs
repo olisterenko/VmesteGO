@@ -13,4 +13,9 @@ public interface IEventService
     Task<EventResponse> UpdateEventAsync(int id, UpdateEventRequest updateDto, int userId, Role role);
     Task DeleteEventAsync(int id, int userId, Role role);
     Task ChangeEventStatus(ChangeEventStatusRequest changeEventStatusRequest);
+    
+    Task<IEnumerable<EventResponse>> GetCreatedPrivateEventsAsync(int userId, string q, int offset, int limit);
+    Task<IEnumerable<EventResponse>> GetJoinedPrivateEventsAsync(int userId, string q, int offset, int limit);
+    Task<IEnumerable<EventResponse>> GetCreatedPublicEventsAsync(int userId, string q, int offset, int limit);
+    Task<IEnumerable<EventResponse>> GetOtherAdminsPublicEventsAsync(int userId, string q, int offset, int limit);
 }

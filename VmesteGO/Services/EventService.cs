@@ -183,4 +183,28 @@ public class EventService : IEventService
         userEvent.EventStatus = changeEventStatusRequest.NewEventStatus;
         await _userEventRepository.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<EventResponse>> GetCreatedPrivateEventsAsync(int userId, string q, int offset, int limit)
+    {
+        var events = await _eventRepository.ListAsync(new CreatedPrivateEventsSpecification(userId, q, offset, limit));
+        return _mapper.Map<IEnumerable<EventResponse>>(events);
+    }
+
+    public async Task<IEnumerable<EventResponse>> GetJoinedPrivateEventsAsync(int userId, string q, int offset, int limit)
+    {
+        var events = await _eventRepository.ListAsync(new JoinedPrivateEventsSpecification(userId, q, offset, limit));
+        return _mapper.Map<IEnumerable<EventResponse>>(events);
+    }
+
+    public async Task<IEnumerable<EventResponse>> GetCreatedPublicEventsAsync(int userId, string q, int offset, int limit)
+    {
+        var events = await _eventRepository.ListAsync(new CreatedPublicEventsSpecification(userId, q, offset, limit));
+        return _mapper.Map<IEnumerable<EventResponse>>(events);
+    }
+
+    public async Task<IEnumerable<EventResponse>> GetOtherAdminsPublicEventsAsync(int userId, string q, int offset, int limit)
+    {
+        var events = await _eventRepository.ListAsync(new OtherAdminsPublicEventsSpecification(userId, q, offset, limit));
+        return _mapper.Map<IEnumerable<EventResponse>>(events);
+    }
 }

@@ -14,11 +14,13 @@ public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;
     private readonly ILogger<EventsController> _logger;
+    private readonly IUserContext _userContext;
 
-    public EventsController(IEventService eventService, ILogger<EventsController> logger)
+    public EventsController(IEventService eventService, ILogger<EventsController> logger, IUserContext userContext)
     {
         _eventService = eventService;
         _logger = logger;
+        _userContext = userContext;
     }
 
     // TODO: как-то тут переделать, чтобы в параметры эвентСтатус и айдишник пользователя подпихивать. Простой список в книжках подглядеть
@@ -39,24 +41,17 @@ public class EventsController : ControllerBase
             {
                 return Forbid();
             }
-        }*/ 
+        }*/
 
         var events = await _eventService.GetAllEventsAsync(includePrivate);
         return Ok(events);
     }
-    
-    // TODO: поиск мероприятия
-    
+
     [HttpPost("{eventId:int}/status")]
     public async Task<ActionResult> ChangeEventStatus(int eventId, [FromBody] EventStatus eventStatus)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = _userContext.UserId;
 
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized();
-        }
-        
         await _eventService.ChangeEventStatus(
             new ChangeEventStatusRequest
             {
@@ -64,7 +59,7 @@ public class EventsController : ControllerBase
                 EventId = eventId,
                 NewEventStatus = eventStatus
             });
-        
+
         return Ok();
     }
 
@@ -91,24 +86,17 @@ public class EventsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<EventResponse>> CreateEvent([FromBody] CreateEventRequest createDto)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var roleString = User.FindFirstValue(ClaimTypes.Role);
+        var userId = _userContext.UserId;
+        var role = _userContext.Role;
 
-        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(roleString))
+        if (!Enum.TryParse(role, out Role userRole))
         {
             return Unauthorized();
         }
-
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized();
-        }
-        
-        var role = Enum.Parse<Role>(roleString!);
 
         try
         {
-            var evt = await _eventService.CreateEventAsync(createDto, userId, role);
+            var evt = await _eventService.CreateEventAsync(createDto, userId, userRole);
             return CreatedAtAction(nameof(GetEvent), new { id = evt.Id }, evt);
         }
         catch (UnauthorizedAccessException ex)
@@ -133,24 +121,17 @@ public class EventsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<EventResponse>> UpdateEvent(int id, [FromBody] UpdateEventRequest updateDto)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var roleString = User.FindFirstValue(ClaimTypes.Role);
+        var userId = _userContext.UserId;
+        var role = _userContext.Role;
 
-        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(roleString))
+        if (!Enum.TryParse(role, out Role userRole))
         {
             return Unauthorized();
         }
-
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized();
-        }
-        
-        var role = Enum.Parse<Role>(roleString!);
 
         try
         {
-            var evt = await _eventService.UpdateEventAsync(id, updateDto, userId, role);
+            var evt = await _eventService.UpdateEventAsync(id, updateDto, userId, userRole);
             return Ok(evt);
         }
         catch (KeyNotFoundException ex)
@@ -179,24 +160,17 @@ public class EventsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteEvent(int id)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var roleString = User.FindFirstValue(ClaimTypes.Role);
+        var userId = _userContext.UserId;
+        var role = _userContext.Role;
 
-        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(roleString))
+        if (!Enum.TryParse(role, out Role userRole))
         {
             return Unauthorized();
         }
-
-        if (!int.TryParse(userIdClaim, out int userId))
-        {
-            return Unauthorized();
-        }
-        
-        var role = Enum.Parse<Role>(roleString!);
 
         try
         {
-            await _eventService.DeleteEventAsync(id, userId, role);
+            await _eventService.DeleteEventAsync(id, userId, userRole);
             return NoContent();
         }
         catch (KeyNotFoundException ex)
@@ -214,5 +188,64 @@ public class EventsController : ControllerBase
             _logger.LogError(ex, "Error deleting event.");
             return StatusCode(500, "Internal server error.");
         }
+    }
+
+    // TODO: проверить поиски
+    [HttpGet("created-private")]
+    [Authorize]
+    public async Task<IActionResult> GetCreatedPrivateEvents(
+        [FromQuery] string q,
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 10)
+    {
+        var userId = _userContext.UserId;
+        var events = await _eventService.GetCreatedPrivateEventsAsync(userId, q, offset, limit);
+        return Ok(events);
+    }
+
+    [HttpGet("joined-private")]
+    [Authorize]
+    public async Task<IActionResult> GetJoinedPrivateEvents(
+        [FromQuery] string q,
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 10)
+    {
+        var userId = _userContext.UserId;
+        var events = await _eventService.GetJoinedPrivateEventsAsync(userId, q, offset, limit);
+        return Ok(events);
+    }
+
+    [HttpGet("created-public")]
+    public async Task<IActionResult> GetCreatedPublicEvents(
+        [FromQuery] string q,
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 10)
+    {
+        var role = _userContext.Role;
+
+        if (!Enum.TryParse(role, out Role userRole))
+        {
+            return Unauthorized();
+        }
+
+        if (userRole != Role.Admin)
+        {
+            return Ok(new List<EventResponse>());
+        }
+
+        var userId = _userContext.UserId;
+        var events = await _eventService.GetCreatedPublicEventsAsync(userId, q, offset, limit);
+        return Ok(events);
+    }
+
+    [HttpGet("other-admins-public")]
+    public async Task<IActionResult> GetOtherAdminsPublicEvents(
+        [FromQuery] string q,
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 10)
+    {
+        var userId = _userContext.UserId;
+        var events = await _eventService.GetOtherAdminsPublicEventsAsync(userId, q, offset, limit);
+        return Ok(events);
     }
 }
