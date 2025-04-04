@@ -25,7 +25,7 @@ public class UserConfig : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasConversion<string>();
 
-        builder.Property(u => u.ImageUrl)
+        builder.Property(u => u.ImageKey)
             .IsRequired();
 
         builder.HasMany(u => u.SentFriendRequests)

@@ -18,4 +18,8 @@ public interface IEventService
     Task<IEnumerable<EventResponse>> GetJoinedPrivateEventsAsync(int userId, string q, int offset, int limit);
     Task<IEnumerable<EventResponse>> GetCreatedPublicEventsAsync(int userId, string q, int offset, int limit);
     Task<IEnumerable<EventResponse>> GetOtherAdminsPublicEventsAsync(int userId, string q, int offset, int limit);
+    
+    Task<UploadEventImageUrlResponse> GetEventUploadUrl(int id, int userId, Role role);
+    Task SaveImageMetadataAsync(int eventId, string imageKey, int orderIndex, int userId, Role role);
+    Task DeleteImageAsync(int imageId);
 }

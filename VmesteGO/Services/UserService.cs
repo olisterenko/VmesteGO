@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
@@ -14,15 +13,18 @@ public class UserService : IUserService
     private readonly IRepository<User> _userRepository;
     private readonly IMapper _mapper;
     private readonly IJwtService _jwtService;
+    private readonly IS3StorageService _s3Service;
 
     public UserService(
         IJwtService jwtService,
         IRepository<User> userRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IS3StorageService s3Service)
     {
         _jwtService = jwtService;
         _userRepository = userRepository;
         _mapper = mapper;
+        _s3Service = s3Service;
     }
 
     public async Task<string> RegisterUser(UserRegisterRequest userRegisterRequest)
@@ -43,7 +45,7 @@ public class UserService : IUserService
             Username = userRegisterRequest.Username,
             PasswordHash = passwordHash,
             Salt = salt,
-            ImageUrl = userRegisterRequest.ImageUrl ?? "someUrl", // TODO: заменить на норм урл
+            ImageKey = userRegisterRequest.ImageKey ?? $"users/default{new Random().Next(1, 6)}.jpg",
             Role = Role.User
         };
 
@@ -105,11 +107,25 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<List<UserResponse>> SearchUsersAsync(
-        UserSearchRequest request,
+    public async Task<IEnumerable<UserResponse>> SearchUsersAsync(UserSearchRequest request,
         CancellationToken cancellationToken)
     {
         var spec = new UserSearchSpec(request.Username, request.Page, request.PageSize);
-        return await _userRepository.ListAsync(spec, cancellationToken);
+        var users = await _userRepository.ListAsync(spec, cancellationToken);
+
+        return users.Select(u => new UserResponse
+        {
+            Id = u.Id,
+            Username = u.Username,
+            ImageUrl = _s3Service.GetImageUrl(u.ImageKey),
+            Role = u.Role
+        });
+    }
+
+    public async Task<UploadUserImageUrlResponse> GetUserUploadUrl(int id)
+    {
+        var key = $"users/{id}/profile.jpg";
+        var url = await _s3Service.GenerateSignedUploadUrl(key);
+        return new UploadUserImageUrlResponse(url, key);
     }
 }

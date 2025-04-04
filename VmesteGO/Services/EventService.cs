@@ -1,6 +1,5 @@
 using Ardalis.Specification;
 using AutoMapper;
-using VmesteGO.Controllers;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
@@ -19,18 +18,24 @@ public class EventService : IEventService
     private readonly IRepository<Category> _categoryRepository;
     private readonly IRepository<UserEvent> _userEventRepository;
     private readonly IMapper _mapper;
+    private readonly IS3StorageService _s3Service;
+    private readonly IRepository<EventImage> _eventImageRepository;
+
 
     public EventService(
         IRepository<Event> eventRepository,
         IRepository<User> userRepository,
         IRepository<Category> categoryRepository,
         IRepository<UserEvent> userEventRepository,
-        IMapper mapper)
+        IMapper mapper, IS3StorageService s3Service, 
+        IRepository<EventImage> eventImageRepository)
     {
         _eventRepository = eventRepository;
         _userRepository = userRepository;
         _categoryRepository = categoryRepository;
         _mapper = mapper;
+        _s3Service = s3Service;
+        _eventImageRepository = eventImageRepository;
         _userEventRepository = userEventRepository;
     }
     
@@ -79,9 +84,9 @@ public class EventService : IEventService
 
         if (createDto.EventImages.Count != 0)
         {
-            foreach (var imageUrl in createDto.EventImages)
+            foreach (var imageKey in createDto.EventImages)
             {
-                evt.EventImages.Add(new EventImage { ImageUrl = imageUrl, Event = evt });
+                evt.EventImages.Add(new EventImage { ImageKey = imageKey, Event = evt });
             }
         }
 
@@ -120,9 +125,9 @@ public class EventService : IEventService
         evt.EventImages.Clear();
         if (updateDto.EventImages.Count != 0)
         {
-            foreach (var imageUrl in updateDto.EventImages)
+            foreach (var imageKey in updateDto.EventImages)
             {
-                evt.EventImages.Add(new EventImage { ImageUrl = imageUrl, Event = evt });
+                evt.EventImages.Add(new EventImage { ImageKey = imageKey, Event = evt });
             }
         }
         
@@ -206,5 +211,79 @@ public class EventService : IEventService
     {
         var events = await _eventRepository.ListAsync(new OtherAdminsPublicEventsSpecification(userId, q, offset, limit));
         return _mapper.Map<IEnumerable<EventResponse>>(events);
+    }
+
+    public async Task<UploadEventImageUrlResponse> GetEventUploadUrl(int id, int userId, Role role)
+    {
+        var spec = new EventsByIdSpec(id);
+        var evt = await _eventRepository.FirstAsync(spec);
+        
+        if (evt == null)
+        {
+            throw new KeyNotFoundException($"Event with id {id} not found."); // TODO: NotFoundException and filter
+        }
+
+        if (role != Role.Admin && evt.CreatorId != userId)
+        {
+            throw new UnauthorizedAccessException("You are not authorized to update this event.");
+        }
+        
+        var imageId = Guid.NewGuid().ToString();
+        var key = $"events/{id}/{imageId}.jpg";
+
+        var url = await _s3Service.GenerateSignedUploadUrl(key);
+        
+        return new UploadEventImageUrlResponse(url, key, evt.EventImages.Count + 1);
+    }
+
+    public async Task SaveImageMetadataAsync(int eventId, string imageKey, int orderIndex, int userId, Role role)
+    {
+        var spec = new EventsByIdSpec(eventId);
+        var evt = await _eventRepository.FirstAsync(spec);
+        
+        if (evt == null)
+        {
+            throw new KeyNotFoundException($"Event with id {eventId} not found."); // TODO: NotFoundException and filter
+        }
+
+        if (role != Role.Admin && evt.CreatorId != userId)
+        {
+            throw new UnauthorizedAccessException("You are not authorized to update this event.");
+        }
+        
+        var newImage = new EventImage
+        {
+            EventId = eventId,
+            ImageKey = imageKey,
+            OrderIndex = orderIndex
+        };
+
+        await _eventImageRepository.AddAsync(newImage);
+    }
+
+    public async Task DeleteImageAsync(int imageId)
+    {
+        var image = await _eventImageRepository.GetByIdAsync(imageId);
+
+        await _s3Service.DeleteImageAsync(image.ImageKey);
+        await _eventImageRepository.DeleteAsync(image);
+        await _eventImageRepository.SaveChangesAsync();
+        await ReorderImagesAsync(image.EventId);
+    }
+    
+    private async Task ReorderImagesAsync(int eventId)
+    {
+        var spec = new EventsByIdSpec(eventId);
+        var evt = await _eventRepository.FirstAsync(spec);
+        var images = evt.EventImages
+            .OrderBy(e => e.OrderIndex)
+            .ToList();
+
+        for (var i = 0; i < images.Count; i++)
+        {
+            images[i].OrderIndex = i + 1;
+        }
+
+        await _eventRepository.SaveChangesAsync();
     }
 }

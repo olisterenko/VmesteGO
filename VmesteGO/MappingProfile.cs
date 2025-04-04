@@ -12,7 +12,7 @@ public class MappingProfile : Profile
     {
         CreateMap<FriendRequest, FriendResponse>()
             .ForMember(dest => dest.FriendUsername, opt => opt.MapFrom(src => src.Receiver.Username))
-            .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.Receiver.ImageUrl))
+            .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.Receiver.ImageKey))
             .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.ReceiverId));
 
         CreateMap<FriendRequest, FriendRequestResponse>()
@@ -23,7 +23,7 @@ public class MappingProfile : Profile
         CreateMap<Event, EventResponse>()
             .ForMember(dest => dest.CreatorUsername, opt => opt.MapFrom(src => src.Creator != null ? src.Creator.Username : "External"))
             .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.EventCategories.Select(ec => ec.Category.Name)))
-            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.EventImages.Select(ei => ei.ImageUrl)));
+            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.EventImages.Select(ei => ei.ImageKey)));
 
         CreateMap<CreateEventRequest, Event>(); // TODO: починить мапперы
         CreateMap<UpdateEventRequest, Event>();

@@ -8,7 +8,7 @@ public class User : BaseEntity<int>
     public string PasswordHash { get; set; } = null!;
     public string Salt { get; set; } = null!;
     public Role Role { get; set; }
-    public string ImageUrl { get; set; } = null!;
+    public string ImageKey { get; set; } = null!;
     public List<FriendRequest> SentFriendRequests { get; set; } = [];
     public List<FriendRequest> ReceivedFriendRequests { get; set; } = [];
     public List<EventInvitation> SentEventInvitations { get; set; } = [];

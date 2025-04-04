@@ -23,6 +23,7 @@ services.AddSwagger();
 services.ConfigureSettings(configuration);
 services.AddDbContextWithRepositories(configuration);
 services.AddFluentMigrator(configuration);
+services.AddS3(configuration);
 services.AddServices();
 
 services.AddHttpContextAccessor();

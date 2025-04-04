@@ -14,12 +14,12 @@ namespace VmesteGO.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserContext _userContext;
 
-    public UsersController(IUserService userService, IHttpContextAccessor httpContextAccessor)
+    public UsersController(IUserService userService, IUserContext userContext)
     {
         _userService = userService;
-        _httpContextAccessor = httpContextAccessor;
+        _userContext = userContext;
     }
 
     [HttpGet]
@@ -39,7 +39,8 @@ public class UsersController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<UserResponse>> UpdateUser(int id, UserUpdateRequest request)
     {
-        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"); // TODO: заменить на UserContext
+        var currentUserId =
+            int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"); // TODO: заменить на UserContext
         var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
         if (currentUserId != id && currentUserRole != Role.Admin.ToString())
@@ -66,9 +67,22 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request,
+        CancellationToken cancellationToken)
     {
         var users = await _userService.SearchUsersAsync(request, cancellationToken);
         return Ok(users);
+    }
+
+    [HttpGet("{id:int}/images-upload")]
+    public async Task<IActionResult> GetUserUploadUrl(int id)
+    {
+        var currentUserId = _userContext.UserId;
+
+        if (currentUserId != id)
+            return Forbid();
+        
+        var uploadInfo =  await _userService.GetUserUploadUrl(id);
+        return Ok(uploadInfo);
     }
 }

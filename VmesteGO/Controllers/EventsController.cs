@@ -248,4 +248,42 @@ public class EventsController : ControllerBase
         var events = await _eventService.GetOtherAdminsPublicEventsAsync(userId, q, offset, limit);
         return Ok(events);
     }
+    
+    [HttpGet("{eventId:int}/images-upload/url")]
+    public async Task<IActionResult> GetEventUploadUrl(int eventId)
+    {
+        var userId = _userContext.UserId;
+        var role = _userContext.Role;
+
+        if (!Enum.TryParse(role, out Role userRole))
+        {
+            return Unauthorized();
+        }
+        
+        var uploadInfo = await _eventService.GetEventUploadUrl(eventId, userId, userRole);
+
+        return Ok(uploadInfo);
+    }
+    
+    [HttpPost("{eventId:int}/images-upload/confirm")]
+    public async Task<IActionResult> ConfirmEventImageUpload(int eventId, [FromBody] ImageUploadConfirmationRequest dto)
+    {
+        var userId = _userContext.UserId;
+        var role = _userContext.Role;
+
+        if (!Enum.TryParse(role, out Role userRole))
+        {
+            return Unauthorized();
+        }
+        
+        await _eventService.SaveImageMetadataAsync(eventId, dto.ImageKey, dto.OrderIndex, userId, userRole);
+        return Ok(new { message = "Image saved successfully" });
+    }
+    
+    [HttpDelete("/images/{imageId:int}")]
+    public async Task<IActionResult> DeleteEventImage(int imageId)
+    {
+        await _eventService.DeleteImageAsync(imageId);
+        return Ok(new { message = "Image deleted successfully" });
+    }
 }

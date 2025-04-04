@@ -1,10 +1,9 @@
 ﻿using Ardalis.Specification;
 using VmesteGO.Domain.Entities;
-using VmesteGO.Dto.Responses;
 
 namespace VmesteGO.Specifications.UserSpecs;
 
-public sealed class UserSearchSpec : Specification<User, UserResponse>
+public sealed class UserSearchSpec : Specification<User>
 {
     public UserSearchSpec(string? username, int page, int pageSize)
     {
@@ -14,14 +13,6 @@ public sealed class UserSearchSpec : Specification<User, UserResponse>
         }
 
         Query.Skip((page - 1) * pageSize).Take(pageSize);
-
-        Query.Select(u => new UserResponse
-        {
-            Id = u.Id,
-            Username = u.Username,
-            Role = u.Role,
-            ImageUrl = u.ImageUrl
-        });
     }
 }
 

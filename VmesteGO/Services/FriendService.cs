@@ -14,17 +14,20 @@ public class FriendService : IFriendService
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<UserEvent> _userEventRepository;
     private readonly IMapper _mapper;
+    private readonly IS3StorageService _s3Service;
 
     public FriendService(
         IRepository<FriendRequest> friendRequestRepository,
         IRepository<User> userRepository,
         IRepository<UserEvent> userEventRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IS3StorageService s3Service)
     {
         _friendRequestRepository = friendRequestRepository;
         _userRepository = userRepository;
         _userEventRepository = userEventRepository;
         _mapper = mapper;
+        _s3Service = s3Service;
     }
 
     public async Task SendFriendRequestAsync(int senderId, int receiverId)
@@ -94,7 +97,9 @@ public class FriendService : IFriendService
             f.Id,
             f.ReceiverId == userId ? f.SenderId : f.ReceiverId,
             f.ReceiverId == userId ? f.Sender.Username : f.Receiver.Username,
-            f.ReceiverId == userId ? f.Sender.ImageUrl : f.Receiver.ImageUrl
+            f.ReceiverId == userId
+                ? _s3Service.GetImageUrl(f.Sender.ImageKey)
+                : _s3Service.GetImageUrl(f.Receiver.ImageKey)
         ));
 
         return friendResponses;
@@ -170,7 +175,7 @@ public class FriendService : IFriendService
         var friends = await _friendRequestRepository.ListAsync(specification);
 
         if (friends.Count == 0) return [];
-        
+
         var friendIds = friends.Select(f => f.ReceiverId == userId ? f.SenderId : f.ReceiverId).Distinct();
         var userEvents = await _userEventRepository.ListAsync(new FriendsEventsSpecification(friendIds));
 
