@@ -21,6 +21,8 @@ public static class ServicesConfiguration
         services.AddScoped<ICommentService, CommentService>();
         
         services.AddScoped<IEventInvitationService, EventInvitationService>();
+
+        services.AddScoped<INotificationService, NotificationService>();
         
         return services;
     }

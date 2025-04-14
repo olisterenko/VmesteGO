@@ -15,19 +15,22 @@ public class FriendService : IFriendService
     private readonly IRepository<UserEvent> _userEventRepository;
     private readonly IMapper _mapper;
     private readonly IS3StorageService _s3Service;
+    private readonly INotificationService _notificationService;
 
     public FriendService(
         IRepository<FriendRequest> friendRequestRepository,
         IRepository<User> userRepository,
         IRepository<UserEvent> userEventRepository,
         IMapper mapper,
-        IS3StorageService s3Service)
+        IS3StorageService s3Service, 
+        INotificationService notificationService)
     {
         _friendRequestRepository = friendRequestRepository;
         _userRepository = userRepository;
         _userEventRepository = userEventRepository;
         _mapper = mapper;
         _s3Service = s3Service;
+        _notificationService = notificationService;
     }
 
     public async Task SendFriendRequestAsync(int senderId, int receiverId)
@@ -56,12 +59,17 @@ public class FriendService : IFriendService
 
         await _friendRequestRepository.AddAsync(friendRequest);
         await _friendRequestRepository.SaveChangesAsync();
+        
+        await _notificationService.AddNotificationAsync(
+            receiver.Id,
+            $"You received a friend request from {sender.Username}."
+        );
     }
 
     public async Task AcceptFriendRequestAsync(int receiverId, int requestId)
     {
-        var friendRequest = await _friendRequestRepository.GetByIdAsync(requestId)
-                            ?? throw new KeyNotFoundException("Friend request not found.");
+        var spec = new FriendRequestWithUsersSpec(requestId);
+        var friendRequest = await _friendRequestRepository.FirstAsync(spec);
 
         if (friendRequest.ReceiverId != receiverId)
             throw new UnauthorizedAccessException("You are not authorized to accept this friend request.");
@@ -71,12 +79,17 @@ public class FriendService : IFriendService
 
         friendRequest.Status = FriendRequestStatus.Accepted;
         await _friendRequestRepository.SaveChangesAsync();
+        
+        await _notificationService.AddNotificationAsync(
+            friendRequest.SenderId,
+            $"Your friend request for {friendRequest.Receiver.Username} was accepted."
+        );
     }
 
     public async Task RejectFriendRequestAsync(int receiverId, int requestId)
     {
-        var friendRequest = await _friendRequestRepository.GetByIdAsync(requestId)
-                            ?? throw new KeyNotFoundException("Friend request not found.");
+        var spec = new FriendRequestWithUsersSpec(requestId);
+        var friendRequest = await _friendRequestRepository.FirstAsync(spec);
 
         if (friendRequest.ReceiverId != receiverId)
             throw new UnauthorizedAccessException("You are not authorized to reject this friend request.");
@@ -86,6 +99,11 @@ public class FriendService : IFriendService
 
         friendRequest.Status = FriendRequestStatus.Rejected;
         await _friendRequestRepository.SaveChangesAsync();
+        
+        await _notificationService.AddNotificationAsync(
+            friendRequest.SenderId,
+            $"Your friend request for {friendRequest.Receiver.Username} was rejected."
+        );
     }
 
     public async Task<IEnumerable<FriendResponse>> GetFriendsAsync(int userId)
@@ -139,12 +157,10 @@ public class FriendService : IFriendService
 
     public async Task RemoveFriendAsync(int userId, int friendId)
     {
+        var user = await _userRepository.GetByIdAsync(userId);
+        
         var specification = new CheckExistingFriendshipSpec(userId, friendId);
-
-        var friendship = await _friendRequestRepository.FirstOrDefaultAsync(specification);
-
-        if (friendship == null)
-            throw new KeyNotFoundException("Friendship not found.");
+        var friendship = await _friendRequestRepository.FirstAsync(specification);
 
         if (userId == friendship.SenderId)
         {
@@ -157,16 +173,28 @@ public class FriendService : IFriendService
         }
 
         await _friendRequestRepository.SaveChangesAsync();
+        
+        await _notificationService.AddNotificationAsync(
+            friendId,
+            $"You were deleted from friends by {user.Username}."
+        );
     }
 
     public async Task RevokeFriendRequestAsync(int requestId, int userId, CancellationToken cancellationToken)
     {
-        var request = await _friendRequestRepository.GetByIdAsync(requestId, cancellationToken);
+        var spec = new FriendRequestWithUsersSpec(requestId);
+        var friendRequest = await _friendRequestRepository.FirstAsync(spec, cancellationToken);
 
-        if (request.SenderId != userId)
+        if (friendRequest.SenderId != userId)
             throw new UnauthorizedAccessException("You are not authorized to revoke to this invitation");
 
-        await _friendRequestRepository.DeleteAsync(request, cancellationToken);
+        await _friendRequestRepository.DeleteAsync(friendRequest, cancellationToken);
+        
+        await _notificationService.AddNotificationAsync(
+            friendRequest.ReceiverId,
+            $"Friend request by {friendRequest.Sender.Username} was revoked.",
+            cancellationToken
+        );
     }
 
     public async Task<IEnumerable<FriendEventResponse>> GetFriendsEventsAsync(int userId)

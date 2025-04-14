@@ -56,5 +56,7 @@ public class MappingProfile : Profile
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<User, UserResponse>();
+        
+        CreateMap<Notification, NotificationResponse>();
     }
 }

@@ -18,8 +18,8 @@ public interface IEventInvitationService
     Task RespondToInvitationAsync(
         int invitationId,
         EventInvitationStatus status,
-        int userId,
+        int receiverId,
         CancellationToken cancellationToken = default);
 
-    Task RevokeInvitationAsync(int invitationId, int userId, CancellationToken cancellationToken);
+    Task RevokeInvitationAsync(int invitationId, int senderId, CancellationToken cancellationToken);
 }

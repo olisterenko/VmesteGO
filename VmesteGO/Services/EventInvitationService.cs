@@ -14,6 +14,7 @@ public class EventInvitationService : IEventInvitationService
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<EventInvitation> _invitationRepository;
     private readonly IRepository<UserEvent> _userEventRepository;
+    private readonly INotificationService _notificationService;
     private readonly IMapper _mapper;
 
     public EventInvitationService(
@@ -21,6 +22,7 @@ public class EventInvitationService : IEventInvitationService
         IRepository<User> userRepository,
         IRepository<EventInvitation> invitationRepository,
         IRepository<UserEvent> userEventRepository,
+        INotificationService notificationService,
         IMapper mapper)
     {
         _eventRepository = eventRepository;
@@ -28,16 +30,15 @@ public class EventInvitationService : IEventInvitationService
         _invitationRepository = invitationRepository;
         _userEventRepository = userEventRepository;
         _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task InviteUserAsync(int eventId, int receiverId, int senderId,
         CancellationToken cancellationToken = default)
     {
         var eventEntity = await _eventRepository.GetByIdAsync(eventId, cancellationToken);
+        var sender = await _userRepository.GetByIdAsync(senderId, cancellationToken);
 
-        // TODO: Check if sender is authorized 
-
-        // Verify receiver exists
         await _userRepository.GetByIdAsync(receiverId, cancellationToken);
 
         var existingInvitationSpec = new EventInvitationByEventAndReceiverSpec(eventId, receiverId);
@@ -61,6 +62,12 @@ public class EventInvitationService : IEventInvitationService
 
         await _invitationRepository.AddAsync(invitation, cancellationToken);
         await _invitationRepository.SaveChangesAsync(cancellationToken);
+
+        await _notificationService.AddNotificationAsync(
+            receiverId,
+            $"You were invited to the event \"{eventEntity.Title}\" by {sender.Username}.",
+            cancellationToken
+        );
     }
 
     public async Task<List<InvitationResponse>> GetPendingEventInvitationsAsync(int userId,
@@ -81,12 +88,13 @@ public class EventInvitationService : IEventInvitationService
         return _mapper.Map<List<InvitationResponse>>(invitations);
     }
 
-    public async Task RespondToInvitationAsync(int invitationId, EventInvitationStatus status, int userId,
+    public async Task RespondToInvitationAsync(int invitationId, EventInvitationStatus status, int receiverId,
         CancellationToken cancellationToken = default)
     {
-        var invitation = await _invitationRepository.GetByIdAsync(invitationId, cancellationToken);
+        var spec = new EventInvitationWithUsersAndEvent(invitationId);
+        var invitation = await _invitationRepository.FirstAsync(spec, cancellationToken);
 
-        if (invitation.ReceiverId != userId)
+        if (invitation.ReceiverId != receiverId)
             throw new UnauthorizedAccessException("You are not authorized to respond to this invitation");
 
         if (status != EventInvitationStatus.Accepted && status != EventInvitationStatus.Rejected)
@@ -96,13 +104,13 @@ public class EventInvitationService : IEventInvitationService
 
         if (status == EventInvitationStatus.Accepted)
         {
-            var userEventSpec = new UserEventByUserAndEventSpec(userId, invitation.EventId);
+            var userEventSpec = new UserEventByUserAndEventSpec(receiverId, invitation.EventId);
             var userEvent = await _userEventRepository.FirstOrDefaultAsync(userEventSpec, cancellationToken);
             if (userEvent == null)
             {
                 var userEventEntity = new UserEvent
                 {
-                    UserId = userId,
+                    UserId = receiverId,
                     EventId = invitation.EventId,
                     EventStatus = EventStatus.Going
                 };
@@ -112,15 +120,28 @@ public class EventInvitationService : IEventInvitationService
 
         await _invitationRepository.SaveChangesAsync(cancellationToken);
         await _userEventRepository.SaveChangesAsync(cancellationToken);
+
+        await _notificationService.AddNotificationAsync(
+            invitation.SenderId,
+            $"You got an answer from {invitation.Receiver.Username} to your invitation to \"{invitation.Event.Title}\". The status is {invitation.Status}",
+            cancellationToken
+        );
     }
 
-    public async Task RevokeInvitationAsync(int invitationId, int userId, CancellationToken cancellationToken)
+    public async Task RevokeInvitationAsync(int invitationId, int senderId, CancellationToken cancellationToken)
     {
-        var invitation = await _invitationRepository.GetByIdAsync(invitationId, cancellationToken);
+        var spec = new EventInvitationWithUsersAndEvent(invitationId);
+        var invitation = await _invitationRepository.FirstAsync(spec, cancellationToken);
 
-        if (invitation.SenderId != userId)
+        if (invitation.SenderId != senderId)
             throw new UnauthorizedAccessException("You are not authorized to revoke to this invitation");
 
         await _invitationRepository.DeleteAsync(invitation, cancellationToken);
+        
+        await _notificationService.AddNotificationAsync(
+            invitation.ReceiverId,
+            $"Invitation to \"{invitation.Event.Title}\" by {invitation.Sender.Username} was revoked.",
+            cancellationToken
+        );
     }
 }
