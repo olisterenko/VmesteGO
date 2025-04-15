@@ -23,6 +23,18 @@ public class UserContext : IUserContext
             return userId;
         }
     }
+    
+    public int? UserIdUnsafe
+    {
+        get
+        {
+            var claim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out var userId))
+                return null;
+
+            return userId;
+        }
+    }
 
     public string Username
     {

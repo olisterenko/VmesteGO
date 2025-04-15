@@ -50,5 +50,11 @@ namespace VmesteGO.Controllers;
             await _commentService.RateComment(userId, commentId, isPositive);
         }
         
-        // TODO: удаление комментариев
+        [HttpDelete("{commentId:int}")]
+        public async Task DeleteComment(int commentId, CancellationToken cancellationToken = default)
+        {
+            var userId = _userContext.UserId;
+            
+            await _commentService.DeleteCommentAsync(userId, commentId, cancellationToken);
+        }
     }

@@ -66,6 +66,16 @@ public class CommentService : ICommentService
         await _userCommentRatingRepository.SaveChangesAsync();
     }
 
+    public async Task DeleteCommentAsync(int userId, int commentId, CancellationToken cancellationToken = default)
+    {
+        var comment = await _commentRepository.GetByIdAsync(commentId, cancellationToken);
+
+        if (comment.AuthorId != userId)
+            throw new UnauthorizedAccessException("You can only delete your own comments.");
+
+        _commentRepository.Delete(comment);
+    }
+
     private GetCommentResponse GetCommentResponse(GetCommentRequest commentRequest, Comment comment)
     {
         var userRating = comment.UserCommentRatings

@@ -58,5 +58,21 @@ public class MappingProfile : Profile
         CreateMap<User, UserResponse>();
         
         CreateMap<Notification, NotificationResponse>();
+        
+        CreateMap<UserEvent, EventResponse>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Event.Id))
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Event.Title))
+            .ForMember(dest => dest.Dates, opt => opt.MapFrom(src => src.Event.Dates))
+            .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Event.Location))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Event.Description))
+            .ForMember(dest => dest.AgeRestriction, opt => opt.MapFrom(src => src.Event.AgeRestriction))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Event.Price))
+            .ForMember(dest => dest.IsPrivate, opt => opt.MapFrom(src => src.Event.IsPrivate))
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Event.ExternalId))
+            .ForMember(dest => dest.CreatorId, opt => opt.MapFrom(src => src.Event.CreatorId))
+            .ForMember(dest => dest.CreatorUsername, opt => opt.MapFrom(src => src.Event.Creator != null ? src.Event.Creator.Username : string.Empty))
+            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Event.EventCategories.Select(c => c.Category.Name)))
+            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Event.EventImages.Select(i => i.ImageKey)))
+            .ForMember(dest => dest.EventStatus, opt => opt.MapFrom(src => src.EventStatus));
     }
 }

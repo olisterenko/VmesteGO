@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VmesteGO.Domain.Enums;
@@ -23,27 +22,14 @@ public class EventsController : ControllerBase
         _userContext = userContext;
     }
 
-    // TODO: как-то тут переделать, чтобы в параметры эвентСтатус и айдишник пользователя подпихивать. Простой список в книжках подглядеть
-    /// <summary>
-    /// Retrieves all events. Optionally includes private events if requested by an admin.
-    /// </summary>
-    /// <param name="includePrivate">Set to true to include private events (admins only).</param>
-    /// <returns>List of events.</returns>
+    // TODO: подумать с приватностью
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<EventResponse>>> GetEvents([FromQuery] bool includePrivate = false)
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetEvents([FromQuery] int? userId = null, [FromQuery] EventStatus? eventStatus = null)
     {
-        // TODO: переделать
-        /*if (includePrivate)
-        {
-            // Ensure the requesting user is admin
-            if (User.Identity?.IsAuthenticated != true || !User.IsInRole("admin"))
-            {
-                return Forbid();
-            }
-        }*/
-
-        var events = await _eventService.GetAllEventsAsync(includePrivate);
+        var username = userId ?? _userContext.UserIdUnsafe;
+        var events = await _eventService.GetEventsAsync(new GetEventsRequest { UserId = username, EventStatus = eventStatus });
+        
         return Ok(events);
     }
 
@@ -63,11 +49,6 @@ public class EventsController : ControllerBase
         return Ok();
     }
 
-    /// <summary>
-    /// Retrieves a specific event by its ID.
-    /// </summary>
-    /// <param name="id">Event ID.</param>
-    /// <returns>Event details.</returns>
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     public async Task<ActionResult<EventResponse>> GetEvent(int id)
@@ -77,11 +58,6 @@ public class EventsController : ControllerBase
         return Ok(evt);
     }
 
-    /// <summary>
-    /// Creates a new event. Admins can create public or private events; users can only create private events.
-    /// </summary>
-    /// <param name="createDto">Event creation details.</param>
-    /// <returns>Created event.</returns>
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<EventResponse>> CreateEvent([FromBody] CreateEventRequest createDto)
@@ -111,12 +87,6 @@ public class EventsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Updates an existing event. Admins can update any event; users can only update their own events.
-    /// </summary>
-    /// <param name="id">Event ID.</param>
-    /// <param name="updateDto">Event update details.</param>
-    /// <returns>Updated event.</returns>
     [HttpPut("{id:int}")]
     [Authorize]
     public async Task<ActionResult<EventResponse>> UpdateEvent(int id, [FromBody] UpdateEventRequest updateDto)
@@ -151,11 +121,6 @@ public class EventsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Deletes an event. Admins can delete any event; users can only delete their own events.
-    /// </summary>
-    /// <param name="id">Event ID.</param>
-    /// <returns>No content.</returns>
     [HttpDelete("{id:int}")]
     [Authorize]
     public async Task<IActionResult> DeleteEvent(int id)

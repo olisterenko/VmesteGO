@@ -1,4 +1,3 @@
-using Ardalis.Specification;
 using AutoMapper;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
@@ -46,20 +45,18 @@ public class EventService : IEventService
         return _mapper.Map<EventResponse>(evt);
     }
 
-    public async Task<IEnumerable<EventResponse>> GetAllEventsAsync(bool includePrivate = false)
+    public async Task<IEnumerable<EventResponse>> GetEventsAsync(GetEventsRequest getEventsRequest)
     {
-        Specification<Event> spec;
-        if (includePrivate)
+        if (getEventsRequest is { UserId: not null, EventStatus: not null })
         {
-            spec = new AllEventsSpec();
-        }
-        else
-        {
-            spec = new PublicEventsSpec();
+            var userEvents = await _userEventRepository
+                .ListAsync(new EventsByEventStatusSpec(getEventsRequest.UserId.Value, getEventsRequest.EventStatus.Value));
+            
+            return userEvents.Select(evt => _mapper.Map<EventResponse>(evt));
         }
 
-        var events = await _eventRepository.ListAsync(spec);
-        return _mapper.Map<IEnumerable<EventResponse>>(events);
+        var events =  await _eventRepository.ListAsync(new AllEventsSpec());
+        return events.Select(evt => _mapper.Map<EventResponse>(evt));
     }
     
     public async Task<EventResponse> CreateEventAsync(CreateEventRequest createDto, int creatorId, Role role)
