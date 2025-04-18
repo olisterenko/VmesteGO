@@ -7,4 +7,5 @@ public class S3Options
     public string AccessKey { get; set; } = string.Empty;
     public string SecretKey { get; set; } = string.Empty;
     public string EndpointUrl { get; set; } = string.Empty;
+    public string Host { get; set; } = string.Empty;
 }

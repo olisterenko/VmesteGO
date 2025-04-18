@@ -85,4 +85,16 @@ public class UsersController : ControllerBase
         var uploadInfo =  await _userService.GetUserUploadUrl(id);
         return Ok(uploadInfo);
     }
+    
+    [HttpPost("{id:int}/confirm-image-upload")]
+    public async Task<IActionResult> GetUserUploadUrl(int id, [FromBody] UserConfirmImageUploadRequest request)
+    {
+        var currentUserId = _userContext.UserId;
+
+        if (currentUserId != id)
+            return Forbid();
+        
+        var userInfo =  await _userService.UpdateUserImageKey(id, request.Key);
+        return Ok(userInfo);
+    }
 }

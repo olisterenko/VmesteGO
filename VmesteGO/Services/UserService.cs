@@ -1,3 +1,4 @@
+using Amazon.Runtime.Internal.Auth;
 using AutoMapper;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
@@ -71,7 +72,13 @@ public class UserService : IUserService
     {
         var user = await _userRepository.GetByIdAsync(id);
 
-        return _mapper.Map<UserResponse>(user);
+        return new UserResponse
+        {
+            Id = user.Id,
+            Username = user.Username,
+            ImageUrl = _s3Service.GetImageUrl(user.ImageKey),
+            Role = user.Role
+        };
     }
 
     public async Task<IEnumerable<UserResponse>> GetAllUsersAsync()
@@ -127,5 +134,20 @@ public class UserService : IUserService
         var key = $"users/{id}/profile.jpg";
         var url = await _s3Service.GenerateSignedUploadUrl(key);
         return new UploadUserImageUrlResponse(url, key);
+    }
+
+    public async Task<UserResponse> UpdateUserImageKey(int id, string key)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        user.ImageKey = key;
+        
+        await _userRepository.SaveChangesAsync();
+        return new UserResponse
+        {
+            Id = user.Id,
+            Username = user.Username,
+            ImageUrl = _s3Service.GetImageUrl(user.ImageKey),
+            Role = user.Role
+        };
     }
 }
