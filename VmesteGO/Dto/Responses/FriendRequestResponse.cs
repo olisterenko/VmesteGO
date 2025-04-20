@@ -4,9 +4,7 @@ namespace VmesteGO.Dto.Responses;
 
 public record FriendRequestResponse(
     int Id,
-    int SenderId,
-    string SenderUsername,
-    int ReceiverId,
-    string ReceiverUsername,
+    UserResponse Sender,
+    UserResponse Receiver,
     DateTime CreatedAt,
     FriendRequestStatus Status);

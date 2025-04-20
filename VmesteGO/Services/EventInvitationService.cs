@@ -2,6 +2,7 @@ using AutoMapper;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Responses;
+using VmesteGO.Extensions;
 using VmesteGO.Services.Interfaces;
 using VmesteGO.Specifications.EventInvitationSpecs;
 using VmesteGO.Specifications.UserEventSpecs;
@@ -15,7 +16,7 @@ public class EventInvitationService : IEventInvitationService
     private readonly IRepository<EventInvitation> _invitationRepository;
     private readonly IRepository<UserEvent> _userEventRepository;
     private readonly INotificationService _notificationService;
-    private readonly IMapper _mapper;
+    private readonly IS3StorageService _s3StorageService;
 
     public EventInvitationService(
         IRepository<Event> eventRepository,
@@ -23,14 +24,14 @@ public class EventInvitationService : IEventInvitationService
         IRepository<EventInvitation> invitationRepository,
         IRepository<UserEvent> userEventRepository,
         INotificationService notificationService,
-        IMapper mapper)
+        IS3StorageService s3StorageService)
     {
         _eventRepository = eventRepository;
         _userRepository = userRepository;
         _invitationRepository = invitationRepository;
         _userEventRepository = userEventRepository;
-        _mapper = mapper;
         _notificationService = notificationService;
+        _s3StorageService = s3StorageService;
     }
 
     public async Task InviteUserAsync(int eventId, int receiverId, int senderId,
@@ -76,7 +77,15 @@ public class EventInvitationService : IEventInvitationService
         var spec = new ReceivedEventInvitationsSpec(userId);
         var invitations = await _invitationRepository.ListAsync(spec, cancellationToken);
 
-        return _mapper.Map<List<InvitationResponse>>(invitations);
+        return invitations.Select(e => new InvitationResponse
+            {
+                Id = e.Id,
+                Event = e.Event.ToEventResponse(_s3StorageService.GetImageUrl),
+                Sender = e.Sender.ToUserResponse(_s3StorageService.GetImageUrl),
+                Receiver = e.Receiver.ToUserResponse(_s3StorageService.GetImageUrl),
+                Status = e.Status
+            })
+            .ToList();
     }
 
     public async Task<List<InvitationResponse>> GetSentEventInvitationsAsync(int userId,
@@ -85,7 +94,15 @@ public class EventInvitationService : IEventInvitationService
         var spec = new SentEventInvitationsSpec(userId);
         var invitations = await _invitationRepository.ListAsync(spec, cancellationToken);
 
-        return _mapper.Map<List<InvitationResponse>>(invitations);
+        return invitations.Select(e => new InvitationResponse
+            {
+                Id = e.Id,
+                Event = e.Event.ToEventResponse(_s3StorageService.GetImageUrl),
+                Sender = e.Sender.ToUserResponse(_s3StorageService.GetImageUrl),
+                Receiver = e.Receiver.ToUserResponse(_s3StorageService.GetImageUrl),
+                Status = e.Status
+            })
+            .ToList();
     }
 
     public async Task RespondToInvitationAsync(int invitationId, EventInvitationStatus status, int receiverId,
@@ -137,7 +154,7 @@ public class EventInvitationService : IEventInvitationService
             throw new UnauthorizedAccessException("You are not authorized to revoke to this invitation");
 
         await _invitationRepository.DeleteAsync(invitation, cancellationToken);
-        
+
         await _notificationService.AddNotificationAsync(
             invitation.ReceiverId,
             $"Invitation to \"{invitation.Event.Title}\" by {invitation.Sender.Username} was revoked.",

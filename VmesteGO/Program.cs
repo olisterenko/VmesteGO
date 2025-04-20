@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using VmesteGO.Infrastructure.Extensions;
 
@@ -18,7 +19,7 @@ services.AddControllers()
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 services.AddEndpointsApiExplorer();
 services.AddSwagger();
-
+services.AddHttpLogging(o => { o.LoggingFields = HttpLoggingFields.Request; });
 
 services.ConfigureSettings(configuration);
 services.AddDbContextWithRepositories(configuration);
@@ -63,7 +64,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseHttpsRedirection();
-
+app.UseHttpLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -13,4 +13,5 @@ public interface IUserService
     Task<bool> DeleteUserAsync(int id);
     Task<IEnumerable<UserResponse>> SearchUsersAsync(UserSearchRequest request, CancellationToken cancellationToken);
     Task<UploadUserImageUrlResponse> GetUserUploadUrl(int id);
+    Task<UserResponse> UpdateUserImageKey(int id, string key);
 }

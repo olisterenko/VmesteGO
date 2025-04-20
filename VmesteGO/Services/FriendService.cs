@@ -2,7 +2,9 @@ using AutoMapper;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Responses;
+using VmesteGO.Extensions;
 using VmesteGO.Services.Interfaces;
+using VmesteGO.Specifications.EventSpecs;
 using VmesteGO.Specifications.FriendRequestSpecs;
 using VmesteGO.Specifications.UserEventSpecs;
 
@@ -22,7 +24,7 @@ public class FriendService : IFriendService
         IRepository<User> userRepository,
         IRepository<UserEvent> userEventRepository,
         IMapper mapper,
-        IS3StorageService s3Service, 
+        IS3StorageService s3Service,
         INotificationService notificationService)
     {
         _friendRequestRepository = friendRequestRepository;
@@ -59,7 +61,7 @@ public class FriendService : IFriendService
 
         await _friendRequestRepository.AddAsync(friendRequest);
         await _friendRequestRepository.SaveChangesAsync();
-        
+
         await _notificationService.AddNotificationAsync(
             receiver.Id,
             $"You received a friend request from {sender.Username}."
@@ -74,12 +76,12 @@ public class FriendService : IFriendService
         if (friendRequest.ReceiverId != receiverId)
             throw new UnauthorizedAccessException("You are not authorized to accept this friend request.");
 
-        if (friendRequest.Status != FriendRequestStatus.Pending)
+        if (friendRequest.Status != FriendRequestStatus.Pending && friendRequest.Status != FriendRequestStatus.Rejected)
             throw new InvalidOperationException("Friend request is not pending.");
 
         friendRequest.Status = FriendRequestStatus.Accepted;
         await _friendRequestRepository.SaveChangesAsync();
-        
+
         await _notificationService.AddNotificationAsync(
             friendRequest.SenderId,
             $"Your friend request for {friendRequest.Receiver.Username} was accepted."
@@ -99,7 +101,7 @@ public class FriendService : IFriendService
 
         friendRequest.Status = FriendRequestStatus.Rejected;
         await _friendRequestRepository.SaveChangesAsync();
-        
+
         await _notificationService.AddNotificationAsync(
             friendRequest.SenderId,
             $"Your friend request for {friendRequest.Receiver.Username} was rejected."
@@ -130,10 +132,8 @@ public class FriendService : IFriendService
 
         return requests.Select(fr => new FriendRequestResponse(
             fr.Id,
-            fr.SenderId,
-            fr.Sender.Username,
-            fr.ReceiverId,
-            fr.Receiver.Username,
+            fr.Sender.ToUserResponse(_s3Service.GetImageUrl),
+            fr.Receiver.ToUserResponse(_s3Service.GetImageUrl),
             fr.CreatedAt,
             fr.Status
         ));
@@ -146,19 +146,33 @@ public class FriendService : IFriendService
 
         return requests.Select(fr => new FriendRequestResponse(
             fr.Id,
-            fr.SenderId,
-            fr.Sender.Username,
-            fr.ReceiverId,
-            fr.Receiver.Username,
+            fr.Sender.ToUserResponse(_s3Service.GetImageUrl),
+            fr.Receiver.ToUserResponse(_s3Service.GetImageUrl),
             fr.CreatedAt,
             fr.Status
         ));
     }
 
+    public async Task<FriendRequestResponse?> GetFriendRequest(int fromId, int toId)
+    {
+        var specification = new GetFriendRequestForUsersSpec(fromId, toId);
+        var request = await _friendRequestRepository.SingleOrDefaultAsync(specification);
+
+        return request is null
+            ? null
+            : new FriendRequestResponse(
+                request.Id,
+                request.Sender.ToUserResponse(_s3Service.GetImageUrl),
+                request.Receiver.ToUserResponse(_s3Service.GetImageUrl),
+                request.CreatedAt,
+                request.Status
+            );
+    }
+
     public async Task RemoveFriendAsync(int userId, int friendId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        
+
         var specification = new CheckExistingFriendshipSpec(userId, friendId);
         var friendship = await _friendRequestRepository.FirstAsync(specification);
 
@@ -173,7 +187,7 @@ public class FriendService : IFriendService
         }
 
         await _friendRequestRepository.SaveChangesAsync();
-        
+
         await _notificationService.AddNotificationAsync(
             friendId,
             $"You were deleted from friends by {user.Username}."
@@ -189,7 +203,7 @@ public class FriendService : IFriendService
             throw new UnauthorizedAccessException("You are not authorized to revoke to this invitation");
 
         await _friendRequestRepository.DeleteAsync(friendRequest, cancellationToken);
-        
+
         await _notificationService.AddNotificationAsync(
             friendRequest.ReceiverId,
             $"Friend request by {friendRequest.Sender.Username} was revoked.",
@@ -212,10 +226,38 @@ public class FriendService : IFriendService
             .Select(g => new FriendEventResponse
             {
                 EventResponse = _mapper.Map<EventResponse>(g.Key),
-                Friends = g.Select(ea => _mapper.Map<UserResponse>(ea.User)).Distinct()
+                Friends = g.Select(ea => ea.User.ToUserResponse(_s3Service.GetImageUrl)).Distinct()
             })
             .ToList();
 
         return groupedEvents;
+    }
+
+    public async Task<List<FriendEventStatusResponse>> GetFriendEventByIdAsync(int userId, int eventId)
+    {
+        var specification = new FriendsOfUserSpec(userId);
+        var friends = await _friendRequestRepository.ListAsync(specification);
+
+        if (friends.Count == 0) return [];
+        
+        var friendIds = friends.Select(f => f.ReceiverId == userId ? f.SenderId : f.ReceiverId).Distinct().ToList();
+        var userEvents = await _userEventRepository.ListAsync(new FriendsSingleEventSpecification(eventId, friendIds));
+
+        var usersWithStatuses = userEvents.Select(
+            x => new FriendEventStatusResponse
+            {
+                Friend = x.User.ToUserResponse(_s3Service.GetImageUrl),
+                EventStatus = x.EventStatus
+            }).ToList();
+        var usersWithoutStatuses = friends
+            .Where(f => userEvents.All(ue => ue.UserId != (f.ReceiverId == userId ? f.SenderId : f.ReceiverId)))
+            .Select(
+            f => new FriendEventStatusResponse
+            {
+                Friend = (f.ReceiverId == userId ? f.Sender : f.Receiver).ToUserResponse(_s3Service.GetImageUrl),
+                EventStatus = null
+            }).ToList();
+
+        return usersWithStatuses.Union(usersWithoutStatuses).ToList();
     }
 }

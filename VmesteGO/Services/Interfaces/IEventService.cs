@@ -7,6 +7,8 @@ namespace VmesteGO.Services.Interfaces;
 public interface IEventService
 {
     Task<EventResponse> GetEventByIdAsync(int id);
+    Task<EventResponse> GetEventByIdForUserAsync(int userId, int eventId);
+    
     Task<IEnumerable<EventResponse>> GetEventsAsync(GetEventsRequest getEventsRequest);
     Task<EventResponse> CreateEventAsync(CreateEventRequest createDto, int creatorId, Role role);
     Task<EventResponse> UpdateEventAsync(int id, UpdateEventRequest updateDto, int userId, Role role);
