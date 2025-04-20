@@ -15,11 +15,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.Receiver.ImageKey))
             .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.ReceiverId));
 
-        CreateMap<FriendRequest, FriendRequestResponse>()
-            .ForMember(friendRequestResponse => friendRequestResponse.SenderUsername, expression => expression.MapFrom(src => src.Sender.Username))
-            .ForMember(friendRequestResponse => friendRequestResponse.ReceiverUsername, expression => expression.MapFrom(src => src.Receiver.Username));
-        
-        
         CreateMap<Event, EventResponse>()
             .ForMember(dest => dest.CreatorUsername, opt => opt.MapFrom(src => src.Creator != null ? src.Creator.Username : "External"))
             .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.EventCategories.Select(ec => ec.Category.Name)))
@@ -28,12 +23,6 @@ public class MappingProfile : Profile
         CreateMap<CreateEventRequest, Event>(); // TODO: починить мапперы
         CreateMap<UpdateEventRequest, Event>();
         
-        
-        CreateMap<EventInvitation, InvitationResponse>()
-            .ForMember(dest => dest.EventTitle, opt => opt.MapFrom(src => src.Event.Title))
-            .ForMember(dest => dest.SenderName, opt => opt.MapFrom(src => src.Sender.Username)) // Assuming User has Username
-            .ForMember(dest => dest.ReceiverName, opt => opt.MapFrom(src => src.Receiver.Username));
-
         CreateMap<CreateInvitationRequest, EventInvitation>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EventInvitationStatus.Pending));
 

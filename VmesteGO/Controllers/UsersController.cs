@@ -70,6 +70,9 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request,
         CancellationToken cancellationToken)
     {
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+        request.CurrentUserId = currentUserId;
         var users = await _userService.SearchUsersAsync(request, cancellationToken);
         return Ok(users);
     }

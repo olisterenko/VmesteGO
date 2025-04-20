@@ -50,10 +50,11 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<ActionResult<EventResponse>> GetEvent(int id)
     {
-        var evt = await _eventService.GetEventByIdAsync(id);
+        var userId = _userContext.UserId;
+        var evt = await _eventService.GetEventByIdForUserAsync(userId, id);
 
         return Ok(evt);
     }

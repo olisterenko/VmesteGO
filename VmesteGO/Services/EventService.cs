@@ -3,6 +3,7 @@ using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
 using VmesteGO.Dto.Responses;
+using VmesteGO.Extensions;
 using VmesteGO.Services.Interfaces;
 using VmesteGO.Specifications.CategorySpecs;
 using VmesteGO.Specifications.EventSpecs;
@@ -43,6 +44,22 @@ public class EventService : IEventService
         var spec = new EventsByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
         return _mapper.Map<EventResponse>(evt);
+    }    
+    
+    public async Task<EventResponse> GetEventByIdForUserAsync(int userId, int eventId)
+    {
+        var spec = new EventsByIdSpec(eventId);
+        var evt = await _eventRepository.FirstAsync(spec);
+        var userEvent = await _userEventRepository
+            .FirstOrDefaultAsync(new UserEventByUserAndEventSpec(userId, eventId));
+
+        EventStatus? eventStatus = null;
+        if (userEvent is not null)
+        {
+            eventStatus = userEvent.EventStatus;
+        }
+
+        return evt.ToEventResponse(_s3Service.GetImageUrl, eventStatus);
     }
 
     public async Task<IEnumerable<EventResponse>> GetEventsAsync(GetEventsRequest getEventsRequest)

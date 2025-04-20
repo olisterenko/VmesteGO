@@ -117,7 +117,7 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserResponse>> SearchUsersAsync(UserSearchRequest request,
         CancellationToken cancellationToken)
     {
-        var spec = new UserSearchSpec(request.Username, request.Page, request.PageSize);
+        var spec = new UserSearchSpec(request.CurrentUserId, request.Username, request.Page, request.PageSize);
         var users = await _userRepository.ListAsync(spec, cancellationToken);
 
         return users.Select(u => new UserResponse

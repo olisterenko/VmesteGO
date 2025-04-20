@@ -53,12 +53,26 @@ public class FriendsController : ControllerBase
         return Ok(new { message = "Friend request revoked" });
     }
 
-    [HttpGet("friends")]
+    [HttpGet]
     public async Task<IActionResult> GetFriends()
     {
         var userId = _userContext.UserId;
         var friends = await _friendService.GetFriendsAsync(userId);
         return Ok(friends);
+    }
+    
+    [HttpGet("requests/users")]
+    public async Task<IActionResult> GetFriendRequest([FromQuery] int fromUserId, [FromQuery] int toUserId)
+    {
+        var currentUserId = _userContext.UserId;
+        var request = await _friendService.GetFriendRequest(fromUserId, toUserId);
+
+        if (request is null)
+        {
+            return BadRequest();
+        }
+
+        return Ok(request);
     }
 
     [HttpGet("requests/pending")]
@@ -77,7 +91,7 @@ public class FriendsController : ControllerBase
         return Ok(requests);
     }
 
-    [HttpDelete("friends/{friendId:int}")]
+    [HttpDelete("{friendId:int}")]
     public async Task<IActionResult> RemoveFriend(int friendId)
     {
         var userId = _userContext.UserId;
@@ -96,6 +110,20 @@ public class FriendsController : ControllerBase
         }
 
         var events = await _friendService.GetFriendsEventsAsync(userId);
+        return Ok(events);
+    }    
+    
+    [HttpGet("events/{eventId:int}")]
+    public async Task<ActionResult> GetFriendsEventById(int eventId)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var events = await _friendService.GetFriendEventByIdAsync(userId, eventId);
         return Ok(events);
     }
 }
