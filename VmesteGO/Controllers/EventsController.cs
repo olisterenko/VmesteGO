@@ -258,4 +258,11 @@ public class EventsController : ControllerBase
         await _eventService.DeleteImageAsync(imageId);
         return Ok(new { message = "Image deleted successfully" });
     }
+    
+    [HttpGet("categories")]
+    public async Task<IActionResult> GetAllCategories()
+    {
+        var categories = await _eventService.GetAllCategoriesAsync();
+        return Ok(categories);
+    }
 }

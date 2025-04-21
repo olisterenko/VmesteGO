@@ -9,6 +9,6 @@ public class UpdateEventRequest
     public int AgeRestriction { get; set; }
     public decimal Price { get; set; }
     public bool IsPrivate { get; set; } 
-    public List<int> EventCategoryIds { get; set; } = [];
+    public List<string> EventCategoryNames { get; set; } = [];
     public List<string> EventImages { get; set; } = [];
 }

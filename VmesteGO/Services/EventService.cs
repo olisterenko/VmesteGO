@@ -88,11 +88,39 @@ public class EventService : IEventService
         var evt = _mapper.Map<Event>(createDto);
         evt.CreatorId = creatorId;
 
-        if (createDto.EventCategoryIds.Count != 0)
+        if (createDto.EventCategoryNames.Count != 0)
         {
-            var categoriesSpec = new CategoriesByIdsSpec(createDto.EventCategoryIds);
-            var categories = await _categoryRepository.ListAsync(categoriesSpec);
-            foreach (var category in categories)
+            var normalizedNames = createDto.EventCategoryNames
+                .Select(n => n.Trim().ToLowerInvariant())
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct()
+                .ToList();
+
+            var existingCategories = await _categoryRepository
+                .ListAsync(new CategoriesByNamesSpec(normalizedNames));
+
+            var existingCategoryNames = existingCategories
+                .Select(c => c.Name.Trim().ToLowerInvariant())
+                .ToHashSet();
+
+            var newCategoryNames = normalizedNames
+                .Where(name => !existingCategoryNames.Contains(name))
+                .Distinct()
+                .ToList();
+
+            var newCategories = newCategoryNames
+                .Select(name => new Category { Name = name })
+                .ToList();
+
+            if (newCategories.Count > 0)
+            {
+                await _categoryRepository.AddRangeAsync(newCategories);
+                await _categoryRepository.SaveChangesAsync();
+            }
+
+            var allCategories = existingCategories.Concat(newCategories).ToList();
+
+            foreach (var category in allCategories)
             {
                 evt.EventCategories.Add(new EventCategory { CategoryId = category.Id, Event = evt });
             }
@@ -125,11 +153,37 @@ public class EventService : IEventService
         _mapper.Map(updateDto, evt);
 
         evt.EventCategories.Clear();
-        if (updateDto.EventCategoryIds.Count != 0)
+        if (updateDto.EventCategoryNames.Count != 0)
         {
-            var categoriesSpec = new CategoriesByIdsSpec(updateDto.EventCategoryIds);
-            var categories = await _categoryRepository.ListAsync(categoriesSpec);
-            foreach (var category in categories)
+            var normalizedNames = updateDto.EventCategoryNames
+                .Select(n => n.Trim().ToLowerInvariant())
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct()
+                .ToList();
+
+            var existingCategories = await _categoryRepository
+                .ListAsync(new CategoriesByNamesSpec(normalizedNames));
+
+            var existingNames = existingCategories
+                .Select(c => c.Name.Trim().ToLowerInvariant())
+                .ToHashSet();
+
+            var newNames = normalizedNames
+                .Where(name => !existingNames.Contains(name))
+                .ToList();
+
+            var newCategories = newNames
+                .Select(name => new Category { Name = name })
+                .ToList();
+
+            if (newCategories.Count > 0)
+            {
+                await _categoryRepository.AddRangeAsync(newCategories);
+                await _categoryRepository.SaveChangesAsync();
+            }
+
+            var allCategories = existingCategories.Concat(newCategories).ToList();
+            foreach (var category in allCategories)
             {
                 evt.EventCategories.Add(new EventCategory { CategoryId = category.Id, Event = evt });
             }
@@ -143,7 +197,6 @@ public class EventService : IEventService
                 evt.EventImages.Add(new EventImage { ImageKey = imageKey, Event = evt });
             }
         }
-
 
         await _eventRepository.SaveChangesAsync();
 
@@ -301,6 +354,13 @@ public class EventService : IEventService
         await _eventImageRepository.DeleteAsync(image);
         await _eventImageRepository.SaveChangesAsync();
         await ReorderImagesAsync(image.EventId);
+    }
+
+    public async Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync()
+    {
+        var categories = await _categoryRepository.ListAsync();
+
+        return categories.Select(c => new CategoryResponse { Id = c.Id, Name = c.Name });
     }
 
     private async Task ReorderImagesAsync(int eventId)

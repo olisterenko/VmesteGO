@@ -15,8 +15,12 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.Receiver.ImageKey))
             .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.ReceiverId));
 
-        CreateMap<CreateEventRequest, Event>(); // TODO: починить мапперы
-        CreateMap<UpdateEventRequest, Event>();
+        CreateMap<CreateEventRequest, Event>()
+            .ForMember(dest => dest.EventCategories, opt => opt.Ignore())
+            .ForMember(dest => dest.EventImages, opt => opt.Ignore());
+        CreateMap<UpdateEventRequest, Event>()
+            .ForMember(dest => dest.EventCategories, opt => opt.Ignore())
+            .ForMember(dest => dest.EventImages, opt => opt.Ignore());
         
         CreateMap<CreateInvitationRequest, EventInvitation>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => EventInvitationStatus.Pending));
