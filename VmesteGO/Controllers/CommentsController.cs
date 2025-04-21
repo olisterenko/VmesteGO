@@ -20,7 +20,7 @@ namespace VmesteGO.Controllers;
             _userContext = userContext;
         }
         
-        [HttpGet("{eventId:int}")] // TODO: подумать тут с авторизацией (как и везде блин)
+        [HttpGet("{eventId:int}")]
         public async Task<List<GetCommentResponse>> GetComments(int eventId)
         {
             var userId = _userContext.UserId;

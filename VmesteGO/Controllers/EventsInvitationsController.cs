@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
+using VmesteGO.Dto.Responses;
 using VmesteGO.Services.Interfaces;
 
 namespace VmesteGO.Controllers;
@@ -20,12 +21,6 @@ public class EventInvitationsController : ControllerBase
         _userContext = userContext;
     }
 
-    /// <summary>
-    /// Invite a user to an event.
-    /// </summary>
-    /// <param name="request">Invitation details.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Status message.</returns>
     [HttpPost("invite")]
     public async Task<IActionResult> InviteUser([FromBody] CreateInvitationRequest request,
         CancellationToken cancellationToken)
@@ -35,13 +30,8 @@ public class EventInvitationsController : ControllerBase
         return Ok(new { message = "Invitation sent successfully" });
     }
 
-    /// <summary>
-    /// Get invitations for the authenticated user.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of invitations.</returns>
     [HttpGet("pending")]
-    public async Task<IActionResult> GetPendingEventInvitations(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<InvitationResponse>>> GetPendingEventInvitations(CancellationToken cancellationToken)
     {
         var userId = _userContext.UserId;
         var invitations = await _invitationService.GetPendingEventInvitationsAsync(userId, cancellationToken);
@@ -49,19 +39,13 @@ public class EventInvitationsController : ControllerBase
     }
 
     [HttpGet("sent")]
-    public async Task<IActionResult> GetSentFriendRequests(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<InvitationResponse>>> GetSentFriendRequests(CancellationToken cancellationToken)
     {
         var userId = _userContext.UserId;
         var requests = await _invitationService.GetSentEventInvitationsAsync(userId, cancellationToken);
         return Ok(requests);
     }
 
-    /// <summary>
-    /// Accept an invitation.
-    /// </summary>
-    /// <param name="id">Invitation ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Status message.</returns>
     [HttpPost("{id:int}/accept")]
     public async Task<IActionResult> AcceptInvitation(int id, CancellationToken cancellationToken)
     {
@@ -71,12 +55,6 @@ public class EventInvitationsController : ControllerBase
         return Ok(new { message = "Invitation accepted" });
     }
 
-    /// <summary>
-    /// Reject an invitation.
-    /// </summary>
-    /// <param name="id">Invitation ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Status message.</returns>
     [HttpPost("{id:int}/reject")]
     public async Task<IActionResult> RejectInvitation(int id, CancellationToken cancellationToken)
     {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VmesteGO.Dto.Responses;
 using VmesteGO.Services.Interfaces;
 
 namespace VmesteGO.Controllers;
@@ -19,7 +20,7 @@ public class NotificationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetNotificationsForUser([FromQuery] bool? isRead, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<NotificationResponse>>> GetNotificationsForUser([FromQuery] bool? isRead, CancellationToken cancellationToken = default)
     {
         var userId = _userContext.UserId;
         var notifications = await _notificationService.GetNotificationsForUserAsync(userId, isRead, cancellationToken);

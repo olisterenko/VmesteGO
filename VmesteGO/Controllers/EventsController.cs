@@ -162,7 +162,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("created-private")]
-    public async Task<IActionResult> GetCreatedPrivateEvents(
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetCreatedPrivateEvents(
         [FromQuery] string? q,
         [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
@@ -174,7 +174,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("joined-private")]
-    public async Task<IActionResult> GetJoinedPrivateEvents(
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetJoinedPrivateEvents(
         [FromQuery] string? q,
         [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
@@ -186,7 +186,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("created-public")]
-    public async Task<IActionResult> GetCreatedPublicEvents(
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetCreatedPublicEvents(
         [FromQuery] string? q,
         [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
@@ -210,7 +210,7 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("other-admins-public")]
-    public async Task<IActionResult> GetOtherAdminsPublicEvents(
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetOtherAdminsPublicEvents(
         [FromQuery] string? q,
         [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,

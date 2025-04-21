@@ -54,7 +54,7 @@ public class FriendsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetFriends()
+    public async Task<ActionResult<IEnumerable<FriendResponse>>> GetFriends()
     {
         var userId = _userContext.UserId;
         var friends = await _friendService.GetFriendsAsync(userId);
@@ -76,7 +76,7 @@ public class FriendsController : ControllerBase
     }
 
     [HttpGet("requests/pending")]
-    public async Task<IActionResult> GetPendingFriendRequests()
+    public async Task<ActionResult<IEnumerable<FriendRequestResponse>>> GetPendingFriendRequests()
     {
         var userId = _userContext.UserId;
         var requests = await _friendService.GetPendingFriendRequestsAsync(userId);
@@ -84,7 +84,7 @@ public class FriendsController : ControllerBase
     }
 
     [HttpGet("requests/sent")]
-    public async Task<IActionResult> GetSentFriendRequests()
+    public async Task<ActionResult<IEnumerable<FriendRequestResponse>>> GetSentFriendRequests()
     {
         var userId = _userContext.UserId;
         var requests = await _friendService.GetSentFriendRequestsAsync(userId);
