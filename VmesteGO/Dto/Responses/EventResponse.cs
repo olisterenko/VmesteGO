@@ -1,3 +1,4 @@
+using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 
 namespace VmesteGO.Dto.Responses;
@@ -15,7 +16,7 @@ public class EventResponse
     public int? ExternalId { get; set; }
     public int? CreatorId { get; set; }
     public required string CreatorUsername { get; set; }
-    public List<string> Categories { get; set; } = [];
+    public List<Category> Categories { get; set; } = [];
     public List<string> Images { get; set; } = [];
     public EventStatus? EventStatus { get; set; }
 }

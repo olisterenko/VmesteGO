@@ -43,7 +43,7 @@ public class EventService : IEventService
     {
         var spec = new EventsByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
-        return _mapper.Map<EventResponse>(evt);
+        return evt.ToEventResponse(_s3Service.GetImageUrl);
     }    
     
     public async Task<EventResponse> GetEventByIdForUserAsync(int userId, int eventId)
@@ -69,11 +69,11 @@ public class EventService : IEventService
             var userEvents = await _userEventRepository
                 .ListAsync(new EventsByEventStatusSpec(getEventsRequest.UserId.Value, getEventsRequest.EventStatus.Value));
             
-            return userEvents.Select(evt => _mapper.Map<EventResponse>(evt));
+            return userEvents.Select(userEvent => _mapper.Map<EventResponse>(userEvent));
         }
 
         var events =  await _eventRepository.ListAsync(new AllEventsSpec());
-        return events.Select(evt => _mapper.Map<EventResponse>(evt));
+        return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
     
     public async Task<EventResponse> CreateEventAsync(CreateEventRequest createDto, int creatorId, Role role)
@@ -84,7 +84,7 @@ public class EventService : IEventService
         }
 
         var evt = _mapper.Map<Event>(createDto);
-        evt.CreatorId = creatorId; // TODO: Creator Entity
+        evt.CreatorId = creatorId;
 
         if (createDto.EventCategoryIds.Count != 0)
         {
@@ -107,16 +107,13 @@ public class EventService : IEventService
         _eventRepository.Add(evt);
         await _eventRepository.SaveChangesAsync();
 
-        return _mapper.Map<EventResponse>(evt);
+        return evt.ToEventResponse(_s3Service.GetImageUrl);
     }
     
     public async Task<EventResponse> UpdateEventAsync(int id, UpdateEventRequest updateDto, int userId, Role role)
     {
-        var evt = await _eventRepository.GetByIdAsync(id); // TODO: spec for categories and images
-        if (evt == null)
-        {
-            throw new KeyNotFoundException($"Event with id {id} not found."); // TODO: NotFoundException and filter
-        }
+        var spec = new EventsByIdSpec(id);
+        var evt = await _eventRepository.FirstAsync(spec);
 
         if (role != Role.Admin && evt.CreatorId != userId)
         {
@@ -148,7 +145,7 @@ public class EventService : IEventService
         
         await _eventRepository.SaveChangesAsync();
 
-        return _mapper.Map<EventResponse>(evt);
+        return evt.ToEventResponse(_s3Service.GetImageUrl);
     }
     
     public async Task DeleteEventAsync(int id, int userId, Role role)
@@ -203,39 +200,54 @@ public class EventService : IEventService
         await _userEventRepository.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<EventResponse>> GetCreatedPrivateEventsAsync(int userId, string q, int offset, int limit)
+    public async Task<IEnumerable<EventResponse>> GetCreatedPrivateEventsAsync(
+        int userId, 
+        string? q,
+        List<int>? categoryIds, 
+        int offset, 
+        int limit)
     {
-        var events = await _eventRepository.ListAsync(new CreatedPrivateEventsSpecification(userId, q, offset, limit));
-        return _mapper.Map<IEnumerable<EventResponse>>(events);
+        var events = await _eventRepository.ListAsync(new CreatedPrivateEventsSpecification(userId, q, categoryIds,offset, limit));
+        return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
-    public async Task<IEnumerable<EventResponse>> GetJoinedPrivateEventsAsync(int userId, string q, int offset, int limit)
+    public async Task<IEnumerable<EventResponse>> GetJoinedPrivateEventsAsync(
+        int userId, 
+        string? q,
+        List<int>? categoryIds, 
+        int offset, 
+        int limit)
     {
-        var events = await _eventRepository.ListAsync(new JoinedPrivateEventsSpecification(userId, q, offset, limit));
-        return _mapper.Map<IEnumerable<EventResponse>>(events);
+        var events = await _eventRepository.ListAsync(new JoinedPrivateEventsSpecification(userId, q, categoryIds,offset, limit));
+        return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
-    public async Task<IEnumerable<EventResponse>> GetCreatedPublicEventsAsync(int userId, string q, int offset, int limit)
+    public async Task<IEnumerable<EventResponse>> GetCreatedPublicEventsAsync(
+        int userId, 
+        string? q,
+        List<int>? categoryIds, 
+        int offset, 
+        int limit)
     {
-        var events = await _eventRepository.ListAsync(new CreatedPublicEventsSpecification(userId, q, offset, limit));
-        return _mapper.Map<IEnumerable<EventResponse>>(events);
+        var events = await _eventRepository.ListAsync(new CreatedPublicEventsSpecification(userId, q, categoryIds,offset, limit));
+        return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
-    public async Task<IEnumerable<EventResponse>> GetOtherAdminsPublicEventsAsync(int userId, string q, int offset, int limit)
+    public async Task<IEnumerable<EventResponse>> GetOtherAdminsPublicEventsAsync(
+        int userId, 
+        string? q,
+        List<int>? categoryIds, 
+        int offset, 
+        int limit)
     {
-        var events = await _eventRepository.ListAsync(new OtherAdminsPublicEventsSpecification(userId, q, offset, limit));
-        return _mapper.Map<IEnumerable<EventResponse>>(events);
+        var events = await _eventRepository.ListAsync(new OtherAdminsPublicEventsSpecification(userId, q, categoryIds, offset, limit));
+        return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
     public async Task<UploadEventImageUrlResponse> GetEventUploadUrl(int id, int userId, Role role)
     {
         var spec = new EventsByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
-        
-        if (evt == null)
-        {
-            throw new KeyNotFoundException($"Event with id {id} not found."); // TODO: NotFoundException and filter
-        }
 
         if (role != Role.Admin && evt.CreatorId != userId)
         {
@@ -254,11 +266,6 @@ public class EventService : IEventService
     {
         var spec = new EventsByIdSpec(eventId);
         var evt = await _eventRepository.FirstAsync(spec);
-        
-        if (evt == null)
-        {
-            throw new KeyNotFoundException($"Event with id {eventId} not found."); // TODO: NotFoundException and filter
-        }
 
         if (role != Role.Admin && evt.CreatorId != userId)
         {

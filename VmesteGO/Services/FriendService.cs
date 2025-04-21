@@ -4,7 +4,6 @@ using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Responses;
 using VmesteGO.Extensions;
 using VmesteGO.Services.Interfaces;
-using VmesteGO.Specifications.EventSpecs;
 using VmesteGO.Specifications.FriendRequestSpecs;
 using VmesteGO.Specifications.UserEventSpecs;
 
@@ -225,7 +224,7 @@ public class FriendService : IFriendService
             .GroupBy(ea => ea.Event)
             .Select(g => new FriendEventResponse
             {
-                EventResponse = _mapper.Map<EventResponse>(g.Key),
+                EventResponse = g.Key.ToEventResponse(_s3Service.GetImageUrl),
                 Friends = g.Select(ea => ea.User.ToUserResponse(_s3Service.GetImageUrl)).Distinct()
             })
             .ToList();

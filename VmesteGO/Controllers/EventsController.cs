@@ -156,34 +156,36 @@ public class EventsController : ControllerBase
         }
     }
 
-    // TODO: проверить поиски
     [HttpGet("created-private")]
     [Authorize]
     public async Task<IActionResult> GetCreatedPrivateEvents(
-        [FromQuery] string q,
+        [FromQuery] string? q,
+        [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
         [FromQuery] int limit = 10)
     {
         var userId = _userContext.UserId;
-        var events = await _eventService.GetCreatedPrivateEventsAsync(userId, q, offset, limit);
+        var events = await _eventService.GetCreatedPrivateEventsAsync(userId, q, categoryIds, offset, limit);
         return Ok(events);
     }
 
     [HttpGet("joined-private")]
     [Authorize]
     public async Task<IActionResult> GetJoinedPrivateEvents(
-        [FromQuery] string q,
+        [FromQuery] string? q,
+        [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
         [FromQuery] int limit = 10)
     {
         var userId = _userContext.UserId;
-        var events = await _eventService.GetJoinedPrivateEventsAsync(userId, q, offset, limit);
+        var events = await _eventService.GetJoinedPrivateEventsAsync(userId, q, categoryIds, offset, limit);
         return Ok(events);
     }
 
     [HttpGet("created-public")]
     public async Task<IActionResult> GetCreatedPublicEvents(
-        [FromQuery] string q,
+        [FromQuery] string? q,
+        [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
         [FromQuery] int limit = 10)
     {
@@ -200,21 +202,22 @@ public class EventsController : ControllerBase
         }
 
         var userId = _userContext.UserId;
-        var events = await _eventService.GetCreatedPublicEventsAsync(userId, q, offset, limit);
+        var events = await _eventService.GetCreatedPublicEventsAsync(userId, q, categoryIds, offset, limit);
         return Ok(events);
     }
 
     [HttpGet("other-admins-public")]
     public async Task<IActionResult> GetOtherAdminsPublicEvents(
-        [FromQuery] string q,
+        [FromQuery] string? q,
+        [FromQuery] List<int>? categoryIds,
         [FromQuery] int offset = 0,
         [FromQuery] int limit = 10)
     {
         var userId = _userContext.UserId;
-        var events = await _eventService.GetOtherAdminsPublicEventsAsync(userId, q, offset, limit);
+        var events = await _eventService.GetOtherAdminsPublicEventsAsync(userId, q, categoryIds, offset, limit);
         return Ok(events);
     }
-    
+
     [HttpGet("{eventId:int}/images-upload/url")]
     public async Task<IActionResult> GetEventUploadUrl(int eventId)
     {
@@ -225,12 +228,12 @@ public class EventsController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         var uploadInfo = await _eventService.GetEventUploadUrl(eventId, userId, userRole);
 
         return Ok(uploadInfo);
     }
-    
+
     [HttpPost("{eventId:int}/images-upload/confirm")]
     public async Task<IActionResult> ConfirmEventImageUpload(int eventId, [FromBody] ImageUploadConfirmationRequest dto)
     {
@@ -241,11 +244,11 @@ public class EventsController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         await _eventService.SaveImageMetadataAsync(eventId, dto.ImageKey, dto.OrderIndex, userId, userRole);
         return Ok(new { message = "Image saved successfully" });
     }
-    
+
     [HttpDelete("/images/{imageId:int}")]
     public async Task<IActionResult> DeleteEventImage(int imageId)
     {

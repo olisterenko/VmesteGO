@@ -15,11 +15,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.FriendImageUrl, opt => opt.MapFrom(src => src.Receiver.ImageKey))
             .ForMember(dest => dest.FriendUserId, opt => opt.MapFrom(src => src.ReceiverId));
 
-        CreateMap<Event, EventResponse>()
-            .ForMember(dest => dest.CreatorUsername, opt => opt.MapFrom(src => src.Creator != null ? src.Creator.Username : "External"))
-            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.EventCategories.Select(ec => ec.Category.Name)))
-            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.EventImages.Select(ei => ei.ImageKey)));
-
         CreateMap<CreateEventRequest, Event>(); // TODO: починить мапперы
         CreateMap<UpdateEventRequest, Event>();
         
@@ -60,7 +55,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Event.ExternalId))
             .ForMember(dest => dest.CreatorId, opt => opt.MapFrom(src => src.Event.CreatorId))
             .ForMember(dest => dest.CreatorUsername, opt => opt.MapFrom(src => src.Event.Creator != null ? src.Event.Creator.Username : string.Empty))
-            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Event.EventCategories.Select(c => c.Category.Name)))
+            .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => src.Event.EventCategories.Select(c => c.Category)))
             .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Event.EventImages.Select(i => i.ImageKey)))
             .ForMember(dest => dest.EventStatus, opt => opt.MapFrom(src => src.EventStatus));
     }

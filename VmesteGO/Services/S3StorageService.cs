@@ -20,7 +20,7 @@ public class S3StorageService : IS3StorageService
         _s3Options = s3Options.Value;
     }
 
-    public async Task<string> GenerateSignedUploadUrl(string key)
+    public Task<string> GenerateSignedUploadUrl(string key)
     {
         var host = _s3Options.Host;
         var region = _s3Options.Region;
@@ -57,9 +57,9 @@ public class S3StorageService : IS3StorageService
         var signatureBytes = HmacSHA256(signingKey, stringToSign);
         var signature = BitConverter.ToString(signatureBytes).Replace("-", "").ToLower();
 
-        return $"https://{host}/{_s3Options.BucketName}/{key}?" +
-               $"{canonicalQueryString}" +
-               $"&X-Amz-Signature={signature}";
+        return Task.FromResult($"https://{host}/{_s3Options.BucketName}/{key}?" +
+                               $"{canonicalQueryString}" +
+                               $"&X-Amz-Signature={signature}");
     }
 
     public string GetImageUrl(string key)

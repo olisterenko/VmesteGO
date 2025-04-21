@@ -4,7 +4,7 @@ using VmesteGO.Dto.Responses;
 
 namespace VmesteGO.Extensions;
 
-public static class EventEntityExt
+public static class EventEntityExtension
 {
     public static EventResponse ToEventResponse(
         this Event source,
@@ -24,7 +24,7 @@ public static class EventEntityExt
             ExternalId = source.ExternalId,
             CreatorId = source.CreatorId,
             CreatorUsername = source.Creator?.Username ?? "Unknown",
-            Categories = source.EventCategories.Select(ec => ec.Category.Name).ToList(),
+            Categories = source.EventCategories.Select(ec => ec.Category).ToList(),
             Images = source.EventImages.Select(img => getImageUrlByKey(img.ImageKey)).ToList(),
             EventStatus = eventStatus
         };
