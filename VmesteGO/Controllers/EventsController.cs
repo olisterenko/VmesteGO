@@ -9,6 +9,7 @@ namespace VmesteGO.Controllers;
 
 [ApiController]
 [Route("events")]
+[Authorize]
 public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;
@@ -22,14 +23,22 @@ public class EventsController : ControllerBase
         _userContext = userContext;
     }
 
-    // TODO: подумать с приватностью
     [HttpGet]
-    [AllowAnonymous]
-    public async Task<ActionResult<IEnumerable<EventResponse>>> GetEvents([FromQuery] int? userId = null, [FromQuery] EventStatus? eventStatus = null)
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetEvents(
+        [FromQuery] int? userId = null,
+        [FromQuery] EventStatus? eventStatus = null)
     {
-        var username = userId ?? _userContext.UserIdUnsafe;
-        var events = await _eventService.GetEventsAsync(new GetEventsRequest { UserId = username, EventStatus = eventStatus });
-        
+        var includePrivate = userId == null && _userContext.UserIdUnsafe != null;
+        var userIdUnsafe = userId ?? _userContext.UserIdUnsafe;
+        var events = await _eventService.GetEventsAsync(
+            new GetEventsRequest
+            {
+                UserId = userIdUnsafe,
+                EventStatus = eventStatus,
+                IncludePrivate = includePrivate
+            }
+        );
+
         return Ok(events);
     }
 
@@ -50,7 +59,6 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize]
     public async Task<ActionResult<EventResponse>> GetEvent(int id)
     {
         var userId = _userContext.UserId;
@@ -60,7 +68,6 @@ public class EventsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<ActionResult<EventResponse>> CreateEvent([FromBody] CreateEventRequest createDto)
     {
         var userId = _userContext.UserId;
@@ -89,7 +96,6 @@ public class EventsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    [Authorize]
     public async Task<ActionResult<EventResponse>> UpdateEvent(int id, [FromBody] UpdateEventRequest updateDto)
     {
         var userId = _userContext.UserId;
@@ -123,7 +129,6 @@ public class EventsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize]
     public async Task<IActionResult> DeleteEvent(int id)
     {
         var userId = _userContext.UserId;
@@ -157,7 +162,6 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("created-private")]
-    [Authorize]
     public async Task<IActionResult> GetCreatedPrivateEvents(
         [FromQuery] string? q,
         [FromQuery] List<int>? categoryIds,
@@ -170,7 +174,6 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("joined-private")]
-    [Authorize]
     public async Task<IActionResult> GetJoinedPrivateEvents(
         [FromQuery] string? q,
         [FromQuery] List<int>? categoryIds,

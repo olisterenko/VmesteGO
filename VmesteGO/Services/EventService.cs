@@ -27,7 +27,7 @@ public class EventService : IEventService
         IRepository<User> userRepository,
         IRepository<Category> categoryRepository,
         IRepository<UserEvent> userEventRepository,
-        IMapper mapper, IS3StorageService s3Service, 
+        IMapper mapper, IS3StorageService s3Service,
         IRepository<EventImage> eventImageRepository)
     {
         _eventRepository = eventRepository;
@@ -38,14 +38,14 @@ public class EventService : IEventService
         _eventImageRepository = eventImageRepository;
         _userEventRepository = userEventRepository;
     }
-    
+
     public async Task<EventResponse> GetEventByIdAsync(int id)
     {
         var spec = new EventsByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
         return evt.ToEventResponse(_s3Service.GetImageUrl);
-    }    
-    
+    }
+
     public async Task<EventResponse> GetEventByIdForUserAsync(int userId, int eventId)
     {
         var spec = new EventsByIdSpec(eventId);
@@ -66,21 +66,23 @@ public class EventService : IEventService
     {
         if (getEventsRequest is { UserId: not null, EventStatus: not null })
         {
-            var userEvents = await _userEventRepository
-                .ListAsync(new EventsByEventStatusSpec(getEventsRequest.UserId.Value, getEventsRequest.EventStatus.Value));
-            
+            var spec = new EventsByEventStatusSpec(getEventsRequest.UserId.Value, getEventsRequest.EventStatus.Value);
+            var userEvents = await _userEventRepository.ListAsync(spec);
+
+            userEvents = userEvents.Where(ue => !ue.Event.IsPrivate || getEventsRequest.IncludePrivate).ToList();
+
             return userEvents.Select(userEvent => _mapper.Map<EventResponse>(userEvent));
         }
 
-        var events =  await _eventRepository.ListAsync(new AllEventsSpec());
+        var events = await _eventRepository.ListAsync(new AllEventsSpec());
         return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
-    
+
     public async Task<EventResponse> CreateEventAsync(CreateEventRequest createDto, int creatorId, Role role)
     {
         if (role != Role.Admin)
         {
-            createDto.IsPrivate = true; 
+            createDto.IsPrivate = true;
         }
 
         var evt = _mapper.Map<Event>(createDto);
@@ -109,7 +111,7 @@ public class EventService : IEventService
 
         return evt.ToEventResponse(_s3Service.GetImageUrl);
     }
-    
+
     public async Task<EventResponse> UpdateEventAsync(int id, UpdateEventRequest updateDto, int userId, Role role)
     {
         var spec = new EventsByIdSpec(id);
@@ -141,13 +143,13 @@ public class EventService : IEventService
                 evt.EventImages.Add(new EventImage { ImageKey = imageKey, Event = evt });
             }
         }
-        
-        
+
+
         await _eventRepository.SaveChangesAsync();
 
         return evt.ToEventResponse(_s3Service.GetImageUrl);
     }
-    
+
     public async Task DeleteEventAsync(int id, int userId, Role role)
     {
         var evt = await _eventRepository.GetByIdAsync(id);
@@ -168,7 +170,8 @@ public class EventService : IEventService
     public async Task ChangeEventStatus(ChangeEventStatusRequest changeEventStatusRequest)
     {
         var userEvent = await _userEventRepository
-            .FirstOrDefaultAsync(new UserEventByUserAndEventSpec(changeEventStatusRequest.UserId, changeEventStatusRequest.EventId));
+            .FirstOrDefaultAsync(new UserEventByUserAndEventSpec(changeEventStatusRequest.UserId,
+                changeEventStatusRequest.EventId));
 
         if (userEvent is null && changeEventStatusRequest.NewEventStatus != EventStatus.NotGoing)
         {
@@ -201,46 +204,54 @@ public class EventService : IEventService
     }
 
     public async Task<IEnumerable<EventResponse>> GetCreatedPrivateEventsAsync(
-        int userId, 
+        int userId,
         string? q,
-        List<int>? categoryIds, 
-        int offset, 
+        List<int>? categoryIds,
+        int offset,
         int limit)
     {
-        var events = await _eventRepository.ListAsync(new CreatedPrivateEventsSpecification(userId, q, categoryIds,offset, limit));
+        var events =
+            await _eventRepository.ListAsync(
+                new CreatedPrivateEventsSpecification(userId, q, categoryIds, offset, limit));
         return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
     public async Task<IEnumerable<EventResponse>> GetJoinedPrivateEventsAsync(
-        int userId, 
+        int userId,
         string? q,
-        List<int>? categoryIds, 
-        int offset, 
+        List<int>? categoryIds,
+        int offset,
         int limit)
     {
-        var events = await _eventRepository.ListAsync(new JoinedPrivateEventsSpecification(userId, q, categoryIds,offset, limit));
+        var events =
+            await _eventRepository.ListAsync(
+                new JoinedPrivateEventsSpecification(userId, q, categoryIds, offset, limit));
         return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
     public async Task<IEnumerable<EventResponse>> GetCreatedPublicEventsAsync(
-        int userId, 
+        int userId,
         string? q,
-        List<int>? categoryIds, 
-        int offset, 
+        List<int>? categoryIds,
+        int offset,
         int limit)
     {
-        var events = await _eventRepository.ListAsync(new CreatedPublicEventsSpecification(userId, q, categoryIds,offset, limit));
+        var events =
+            await _eventRepository.ListAsync(
+                new CreatedPublicEventsSpecification(userId, q, categoryIds, offset, limit));
         return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
     public async Task<IEnumerable<EventResponse>> GetOtherAdminsPublicEventsAsync(
-        int userId, 
+        int userId,
         string? q,
-        List<int>? categoryIds, 
-        int offset, 
+        List<int>? categoryIds,
+        int offset,
         int limit)
     {
-        var events = await _eventRepository.ListAsync(new OtherAdminsPublicEventsSpecification(userId, q, categoryIds, offset, limit));
+        var events =
+            await _eventRepository.ListAsync(
+                new OtherAdminsPublicEventsSpecification(userId, q, categoryIds, offset, limit));
         return events.Select(evt => evt.ToEventResponse(_s3Service.GetImageUrl));
     }
 
@@ -253,12 +264,12 @@ public class EventService : IEventService
         {
             throw new UnauthorizedAccessException("You are not authorized to update this event.");
         }
-        
+
         var imageId = Guid.NewGuid().ToString();
         var key = $"events/{id}/{imageId}.jpg";
 
         var url = await _s3Service.GenerateSignedUploadUrl(key);
-        
+
         return new UploadEventImageUrlResponse(url, key, evt.EventImages.Count + 1);
     }
 
@@ -271,7 +282,7 @@ public class EventService : IEventService
         {
             throw new UnauthorizedAccessException("You are not authorized to update this event.");
         }
-        
+
         var newImage = new EventImage
         {
             EventId = eventId,
@@ -291,7 +302,7 @@ public class EventService : IEventService
         await _eventImageRepository.SaveChangesAsync();
         await ReorderImagesAsync(image.EventId);
     }
-    
+
     private async Task ReorderImagesAsync(int eventId)
     {
         var spec = new EventsByIdSpec(eventId);
