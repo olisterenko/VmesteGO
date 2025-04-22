@@ -87,6 +87,7 @@ public class EventService : IEventService
 
         var evt = _mapper.Map<Event>(createDto);
         evt.CreatorId = creatorId;
+        evt.Dates = evt.Dates.ToUniversalTime();
 
         if (createDto.EventCategoryNames.Count != 0)
         {
