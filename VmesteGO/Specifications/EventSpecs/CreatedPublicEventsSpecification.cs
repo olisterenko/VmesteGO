@@ -8,7 +8,8 @@ public sealed class CreatedPublicEventsSpecification : Specification<Event>
     public CreatedPublicEventsSpecification(int adminId, string? search, List<int>? categoryIds, int offset, int limit)
     {
         Query
-            .Where(e => !e.IsPrivate && e.CreatorId == adminId);
+            .Where(e => !e.IsPrivate && e.CreatorId == adminId)
+            .Include(e => e.Creator);
 
         if (!string.IsNullOrWhiteSpace(search))
         {

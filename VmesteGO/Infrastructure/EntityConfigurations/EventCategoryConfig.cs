@@ -15,11 +15,10 @@ public class EventCategoryConfig : IEntityTypeConfiguration<EventCategory>
         builder.HasOne(ec => ec.Event)
             .WithMany(e => e.EventCategories)
             .HasForeignKey(ec => ec.EventId)
-            .OnDelete(DeleteBehavior.Cascade); 
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ec => ec.Category)
             .WithMany()
-            .HasForeignKey(ec => ec.CategoryId)
-            .OnDelete(DeleteBehavior.Cascade); 
+            .HasForeignKey(ec => ec.CategoryId);
     }
 }

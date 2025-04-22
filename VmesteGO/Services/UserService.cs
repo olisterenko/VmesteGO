@@ -1,9 +1,9 @@
-using Amazon.Runtime.Internal.Auth;
 using AutoMapper;
 using VmesteGO.Domain.Entities;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
 using VmesteGO.Dto.Responses;
+using VmesteGO.Extensions;
 using VmesteGO.Services.Interfaces;
 using VmesteGO.Specifications.UserSpecs;
 
@@ -75,7 +75,8 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserResponse>> GetAllUsersAsync()
     {
         var users = await _userRepository.ListAsync();
-        return _mapper.Map<IEnumerable<UserResponse>>(users);
+
+        return users.Select(u => u.ToUserResponse(_s3Service.GetImageUrl));
     }
 
     public async Task<UserResponse> UpdateUserAsync(int id, UserUpdateRequest request)
@@ -93,7 +94,7 @@ public class UserService : IUserService
 
         await _userRepository.SaveChangesAsync();
 
-        return _mapper.Map<UserResponse>(user);
+        return user.ToUserResponse(_s3Service.GetImageUrl);
     }
 
     public async Task<bool> DeleteUserAsync(int id)
@@ -131,7 +132,7 @@ public class UserService : IUserService
     {
         var user = await _userRepository.GetByIdAsync(id);
         user.ImageKey = key;
-        
+
         await _userRepository.SaveChangesAsync();
         return new UserResponse
         {

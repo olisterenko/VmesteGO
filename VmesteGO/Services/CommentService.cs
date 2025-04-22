@@ -73,7 +73,7 @@ public class CommentService : ICommentService
         if (comment.AuthorId != userId)
             throw new UnauthorizedAccessException("You can only delete your own comments.");
 
-        _commentRepository.Delete(comment);
+        await _commentRepository.DeleteAsync(comment, cancellationToken);
     }
 
     private GetCommentResponse GetCommentResponse(GetCommentRequest commentRequest, Comment comment)

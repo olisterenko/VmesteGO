@@ -8,7 +8,8 @@ public sealed class JoinedPrivateEventsSpecification : Specification<Event>
     public JoinedPrivateEventsSpecification(int userId, string? search, List<int>? categoryIds, int offset, int limit)
     {
         Query
-            .Where(e => e.IsPrivate && e.EventInvitations.Any(ui => ui.ReceiverId == userId));
+            .Where(e => e.IsPrivate && e.EventInvitations.Any(ui => ui.ReceiverId == userId))
+            .Include(e => e.Creator);
 
         if (!string.IsNullOrWhiteSpace(search))
         {

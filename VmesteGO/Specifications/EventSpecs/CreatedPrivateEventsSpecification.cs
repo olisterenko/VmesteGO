@@ -8,7 +8,8 @@ public sealed class CreatedPrivateEventsSpecification : Specification<Event>
     public CreatedPrivateEventsSpecification(int userId, string? search, List<int>? categoryIds, int offset, int limit)
     {
         Query
-            .Where(e => e.IsPrivate && e.CreatorId == userId);
+            .Where(e => e.IsPrivate && e.CreatorId == userId)
+            .Include(e => e.Creator);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
