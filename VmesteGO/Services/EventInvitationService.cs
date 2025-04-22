@@ -66,7 +66,7 @@ public class EventInvitationService : IEventInvitationService
 
         await _notificationService.AddNotificationAsync(
             receiverId,
-            $"You were invited to the event \"{eventEntity.Title}\" by {sender.Username}.",
+            $"Вы были приглашены на мероприятие \"{eventEntity.Title}\" пользователем {sender.Username}.",
             cancellationToken
         );
     }
@@ -140,7 +140,7 @@ public class EventInvitationService : IEventInvitationService
 
         await _notificationService.AddNotificationAsync(
             invitation.SenderId,
-            $"You got an answer from {invitation.Receiver.Username} to your invitation to \"{invitation.Event.Title}\". The status is {invitation.Status}",
+            $"Вы получили ответ от {invitation.Receiver.Username} на свое приглашение на \"{invitation.Event.Title}\". Статус: {invitation.Status}",
             cancellationToken
         );
     }
@@ -157,7 +157,7 @@ public class EventInvitationService : IEventInvitationService
 
         await _notificationService.AddNotificationAsync(
             invitation.ReceiverId,
-            $"Invitation to \"{invitation.Event.Title}\" by {invitation.Sender.Username} was revoked.",
+            $"Приглашение на \"{invitation.Event.Title}\" от {invitation.Sender.Username} было отозвано.",
             cancellationToken
         );
     }

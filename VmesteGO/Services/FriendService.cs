@@ -63,7 +63,7 @@ public class FriendService : IFriendService
 
         await _notificationService.AddNotificationAsync(
             receiver.Id,
-            $"You received a friend request from {sender.Username}."
+            $"Вы получили запрос в друзья от {sender.Username}."
         );
     }
 
@@ -83,7 +83,7 @@ public class FriendService : IFriendService
 
         await _notificationService.AddNotificationAsync(
             friendRequest.SenderId,
-            $"Your friend request for {friendRequest.Receiver.Username} was accepted."
+            $"Ваш запрос в друзья {friendRequest.Receiver.Username} был принят."
         );
     }
 
@@ -103,7 +103,7 @@ public class FriendService : IFriendService
 
         await _notificationService.AddNotificationAsync(
             friendRequest.SenderId,
-            $"Your friend request for {friendRequest.Receiver.Username} was rejected."
+            $"Ваш запрос в друзья {friendRequest.Receiver.Username} был отклонен."
         );
     }
 
@@ -189,7 +189,7 @@ public class FriendService : IFriendService
 
         await _notificationService.AddNotificationAsync(
             friendId,
-            $"You were deleted from friends by {user.Username}."
+            $"Вы были удалены из друзей {user.Username}."
         );
     }
 
@@ -205,7 +205,7 @@ public class FriendService : IFriendService
 
         await _notificationService.AddNotificationAsync(
             friendRequest.ReceiverId,
-            $"Friend request by {friendRequest.Sender.Username} was revoked.",
+            $"Запрос в друзья от {friendRequest.Sender.Username} был отозван.",
             cancellationToken
         );
     }
