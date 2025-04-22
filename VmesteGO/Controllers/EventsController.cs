@@ -1,8 +1,10 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
 using VmesteGO.Dto.Responses;
+using VmesteGO.Filters;
 using VmesteGO.Services.Interfaces;
 
 namespace VmesteGO.Controllers;
@@ -10,17 +12,24 @@ namespace VmesteGO.Controllers;
 [ApiController]
 [Route("events")]
 [Authorize]
+[ValidationExceptionFilter]
 public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;
     private readonly ILogger<EventsController> _logger;
     private readonly IUserContext _userContext;
+    private readonly IValidator<CreateEventRequest> _validator;
 
-    public EventsController(IEventService eventService, ILogger<EventsController> logger, IUserContext userContext)
+    public EventsController(
+        IEventService eventService, 
+        ILogger<EventsController> logger, 
+        IUserContext userContext,
+        IValidator<CreateEventRequest> validator)
     {
         _eventService = eventService;
         _logger = logger;
         _userContext = userContext;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -77,6 +86,8 @@ public class EventsController : ControllerBase
         {
             return Unauthorized();
         }
+        
+        await _validator.ValidateAndThrowAsync(createDto);
 
         try
         {
@@ -258,7 +269,7 @@ public class EventsController : ControllerBase
         await _eventService.DeleteImageAsync(imageId);
         return Ok(new { message = "Image deleted successfully" });
     }
-    
+
     [HttpGet("categories")]
     public async Task<IActionResult> GetAllCategories()
     {

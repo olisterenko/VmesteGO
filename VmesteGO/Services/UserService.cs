@@ -30,15 +30,6 @@ public class UserService : IUserService
 
     public async Task<string> RegisterUser(UserRegisterRequest userRegisterRequest)
     {
-        var userSpec = new UserByUsernameSpec(userRegisterRequest.Username);
-        var existingUser = await _userRepository.FirstOrDefaultAsync(userSpec);
-
-        if (existingUser != null)
-        {
-            throw new Exception("Username is already taken."); // TODO: вытащить в валидацию? 
-        }
-
-        // Hash the password and get the salt
         var (passwordHash, salt) = PasswordHelper.HashPassword(userRegisterRequest.Password);
 
         var user = new User // TODO: fix bug with hashing (creates user if failed)

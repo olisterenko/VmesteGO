@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VmesteGO.Domain.Enums;
 using VmesteGO.Dto.Requests;
 using VmesteGO.Dto.Responses;
+using VmesteGO.Filters;
 using VmesteGO.Services.Interfaces;
 
 namespace VmesteGO.Controllers;
@@ -11,15 +13,18 @@ namespace VmesteGO.Controllers;
 [Route("users")]
 [ApiController]
 [Authorize]
+[ValidationExceptionFilter]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IUserContext _userContext;
+    private readonly IValidator<UserUpdateRequest> _validator;
 
-    public UsersController(IUserService userService, IUserContext userContext)
+    public UsersController(IUserService userService, IUserContext userContext, IValidator<UserUpdateRequest> validator)
     {
         _userService = userService;
         _userContext = userContext;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -45,6 +50,8 @@ public class UsersController : ControllerBase
 
         if (currentUserId != id && currentUserRole != Role.Admin.ToString())
             return Forbid();
+        
+        await _validator.ValidateAndThrowAsync(request);
 
         var updatedUser = await _userService.UpdateUserAsync(id, request);
         return Ok(updatedUser);
@@ -84,11 +91,11 @@ public class UsersController : ControllerBase
 
         if (currentUserId != id)
             return Forbid();
-        
-        var uploadInfo =  await _userService.GetUserUploadUrl(id);
+
+        var uploadInfo = await _userService.GetUserUploadUrl(id);
         return Ok(uploadInfo);
     }
-    
+
     [HttpPost("{id:int}/confirm-image-upload")]
     public async Task<IActionResult> GetUserUploadUrl(int id, [FromBody] UserConfirmImageUploadRequest request)
     {
@@ -96,8 +103,8 @@ public class UsersController : ControllerBase
 
         if (currentUserId != id)
             return Forbid();
-        
-        var userInfo =  await _userService.UpdateUserImageKey(id, request.Key);
+
+        var userInfo = await _userService.UpdateUserImageKey(id, request.Key);
         return Ok(userInfo);
     }
 }

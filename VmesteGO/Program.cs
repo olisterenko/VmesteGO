@@ -22,6 +22,7 @@ services.AddSwagger();
 services.AddHttpLogging(o => { o.LoggingFields = HttpLoggingFields.Request; });
 
 services.ConfigureSettings(configuration);
+services.AddValidators();
 services.AddDbContextWithRepositories(configuration);
 services.AddFluentMigrator(configuration);
 services.AddS3(configuration);
