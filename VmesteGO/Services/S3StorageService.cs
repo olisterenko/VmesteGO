@@ -45,7 +45,7 @@ public class S3StorageService : IS3StorageService
             $"host\n" +
             $"UNSIGNED-PAYLOAD";
 
-        var hashedCanonicalRequest = HashSHA256Hex(canonicalRequest);
+        var hashedCanonicalRequest = HashSha256Hex(canonicalRequest);
 
         var stringToSign =
             $"AWS4-HMAC-SHA256\n" +
@@ -54,7 +54,7 @@ public class S3StorageService : IS3StorageService
             $"{hashedCanonicalRequest}";
 
         var signingKey = GetSignatureKey(_s3Options.SecretKey, datestamp, region, service);
-        var signatureBytes = HmacSHA256(signingKey, stringToSign);
+        var signatureBytes = HmacSha256(signingKey, stringToSign);
         var signature = BitConverter.ToString(signatureBytes).Replace("-", "").ToLower();
 
         return Task.FromResult($"https://{host}/{_s3Options.BucketName}/{key}?" +
@@ -77,7 +77,7 @@ public class S3StorageService : IS3StorageService
         await _s3Client.DeleteObjectAsync(deleteRequest);
     }
 
-    static byte[] HmacSHA256(byte[] key, string data)
+    private static byte[] HmacSha256(byte[] key, string data)
     {
         using (var hmac = new HMACSHA256(key))
         {
@@ -85,7 +85,7 @@ public class S3StorageService : IS3StorageService
         }
     }
 
-    static string HashSHA256Hex(string data)
+    private static string HashSha256Hex(string data)
     {
         using (var sha256 = SHA256.Create())
         {
@@ -94,13 +94,13 @@ public class S3StorageService : IS3StorageService
         }
     }
 
-    static byte[] GetSignatureKey(string secretKey, string dateStamp, string regionName, string serviceName)
+    private static byte[] GetSignatureKey(string secretKey, string dateStamp, string regionName, string serviceName)
     {
         var kSecret = Encoding.UTF8.GetBytes("AWS4" + secretKey);
-        var kDate = HmacSHA256(kSecret, dateStamp);
-        var kRegion = HmacSHA256(kDate, regionName);
-        var kService = HmacSHA256(kRegion, serviceName);
-        var kSigning = HmacSHA256(kService, "aws4_request");
+        var kDate = HmacSha256(kSecret, dateStamp);
+        var kRegion = HmacSha256(kDate, regionName);
+        var kService = HmacSha256(kRegion, serviceName);
+        var kSigning = HmacSha256(kService, "aws4_request");
         return kSigning;
     }
 }
