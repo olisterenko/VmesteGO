@@ -41,14 +41,14 @@ public class EventService : IEventService
 
     public async Task<EventResponse> GetEventByIdAsync(int id)
     {
-        var spec = new EventsByIdSpec(id);
+        var spec = new EventByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
         return evt.ToEventResponse(_s3Service.GetImageUrl);
     }
 
     public async Task<EventResponse> GetEventByIdForUserAsync(int userId, int eventId)
     {
-        var spec = new EventsByIdSpec(eventId);
+        var spec = new EventByIdSpec(eventId);
         var evt = await _eventRepository.FirstAsync(spec);
         var userEvent = await _userEventRepository
             .FirstOrDefaultAsync(new UserEventByUserAndEventSpec(userId, eventId));
@@ -144,7 +144,7 @@ public class EventService : IEventService
 
     public async Task<EventResponse> UpdateEventAsync(int id, UpdateEventRequest updateDto, int userId, Role role)
     {
-        var spec = new EventsByIdSpec(id);
+        var spec = new EventByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
 
         if (role != Role.Admin && evt.CreatorId != userId)
@@ -312,7 +312,7 @@ public class EventService : IEventService
 
     public async Task<UploadEventImageUrlResponse> GetEventUploadUrl(int id, int userId, Role role)
     {
-        var spec = new EventsByIdSpec(id);
+        var spec = new EventByIdSpec(id);
         var evt = await _eventRepository.FirstAsync(spec);
 
         if (role != Role.Admin && evt.CreatorId != userId)
@@ -330,7 +330,7 @@ public class EventService : IEventService
 
     public async Task SaveImageMetadataAsync(int eventId, string imageKey, int orderIndex, int userId, Role role)
     {
-        var spec = new EventsByIdSpec(eventId);
+        var spec = new EventByIdSpec(eventId);
         var evt = await _eventRepository.FirstAsync(spec);
 
         if (role != Role.Admin && evt.CreatorId != userId)
@@ -367,7 +367,7 @@ public class EventService : IEventService
 
     private async Task ReorderImagesAsync(int eventId)
     {
-        var spec = new EventsByIdSpec(eventId);
+        var spec = new EventByIdSpec(eventId);
         var evt = await _eventRepository.FirstAsync(spec);
         var images = evt.EventImages
             .OrderBy(e => e.OrderIndex)

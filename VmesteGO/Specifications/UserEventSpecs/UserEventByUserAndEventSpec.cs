@@ -3,7 +3,7 @@ using VmesteGO.Domain.Entities;
 
 namespace VmesteGO.Specifications.UserEventSpecs;
 
-public sealed class UserEventByUserAndEventSpec : Specification<UserEvent>
+public sealed class UserEventByUserAndEventSpec : Specification<UserEvent>, ISingleResultSpecification<UserEvent>
 {
     public UserEventByUserAndEventSpec(int userId, int eventId)
     {

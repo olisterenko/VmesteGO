@@ -4,7 +4,7 @@ using VmesteGO.Domain.Enums;
 
 namespace VmesteGO.Specifications.FriendRequestSpecs;
 
-public sealed class CheckExistingFriendshipSpec : Specification<FriendRequest>
+public sealed class CheckExistingFriendshipSpec : Specification<FriendRequest>, ISingleResultSpecification<FriendRequest>
 {
     public CheckExistingFriendshipSpec(int userId, int friendUserId)
     {

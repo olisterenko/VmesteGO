@@ -3,7 +3,7 @@ using System.Text;
 
 namespace VmesteGO.Services;
 
-public static class PasswordHelper // TODO: переместить в папку поумнее?
+public static class PasswordHelper
 {
     public static (string PasswordHash, string Salt) HashPassword(string password)
     {

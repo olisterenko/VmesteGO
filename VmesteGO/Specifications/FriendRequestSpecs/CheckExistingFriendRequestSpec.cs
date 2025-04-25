@@ -3,7 +3,7 @@ using VmesteGO.Domain.Entities;
 
 namespace VmesteGO.Specifications.FriendRequestSpecs;
 
-public sealed class CheckExistingFriendRequestSpec : Specification<FriendRequest> //TODO: ISingle here and check others
+public sealed class CheckExistingFriendRequestSpec : Specification<FriendRequest>, ISingleResultSpecification<FriendRequest>
 {
     public CheckExistingFriendRequestSpec(int senderId, int receiverId)
     {

@@ -240,7 +240,7 @@ public class FriendService : IFriendService
         if (friends.Count == 0) return [];
         
         var friendIds = friends.Select(f => f.ReceiverId == userId ? f.SenderId : f.ReceiverId).Distinct().ToList();
-        var userEvents = await _userEventRepository.ListAsync(new FriendsSingleEventSpecification(eventId, friendIds));
+        var userEvents = await _userEventRepository.ListAsync(new FriendsSpecificEventSpecification(eventId, friendIds));
 
         var usersWithStatuses = userEvents.Select(
             x => new FriendEventStatusResponse

@@ -32,7 +32,7 @@ public class UserService : IUserService
     {
         var (passwordHash, salt) = PasswordHelper.HashPassword(userRegisterRequest.Password);
 
-        var user = new User // TODO: fix bug with hashing (creates user if failed)
+        var user = new User
         {
             Username = userRegisterRequest.Username,
             PasswordHash = passwordHash,

@@ -3,7 +3,7 @@ using VmesteGO.Domain.Entities;
 
 namespace VmesteGO.Specifications.EventInvitationSpecs;
 
-public sealed class EventInvitationWithUsersAndEvent : Specification<EventInvitation>
+public sealed class EventInvitationWithUsersAndEvent : Specification<EventInvitation>, ISingleResultSpecification<EventInvitation>
 {
     public EventInvitationWithUsersAndEvent(int inviteId)
     {
