@@ -14,9 +14,9 @@ public sealed class CreatedPrivateEventsSpecification : Specification<Event>
         if (!string.IsNullOrWhiteSpace(search))
         {
             Query.Where(e =>
-                e.Title.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
-                e.Description.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
-                e.Location.Contains(search, StringComparison.CurrentCultureIgnoreCase));
+                e.Title.ToLower().Contains(search) ||
+                e.Description.ToLower().Contains(search) ||
+                e.Location.ToLower().Contains(search));
         }
 
         if (categoryIds is { Count: > 0 })
