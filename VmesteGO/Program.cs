@@ -10,7 +10,7 @@ var configuration = builder.Configuration;
 var services = builder.Services;
 
 // Add services to the container.
-
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 services.AddControllers()
     .AddJsonOptions(options =>
     {
