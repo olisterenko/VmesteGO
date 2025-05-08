@@ -1,0 +1,4 @@
+﻿vmestego-api.ru {
+	encode zstd gzip
+	reverse_proxy vmestego:5000
+}

@@ -9,22 +9,47 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespw
       POSTGRES_DB: db-vmestego
-    ports:
-      - "5432:5432"
     volumes:
       - vmestego_pgdata:/var/lib/postgresql/data
+    networks:
+      - web
 
   vmestego:
     build: .
     container_name: vmestego
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - "5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:5000
       ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=db-vmestego;Username=postgres;Password=postgrespw
     depends_on:
       - postgres
+    networks:
+      - web
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: caddy_reverse_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - vmestego
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
 
 volumes:
   vmestego_pgdata:
+  caddy_data:
+  caddy_config:

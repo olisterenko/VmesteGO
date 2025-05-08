@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using VmesteGO.Infrastructure.Extensions;
 
@@ -10,12 +11,11 @@ var configuration = builder.Configuration;
 var services = builder.Services;
 
 // Add services to the container.
-builder.WebHost.UseUrls("http://0.0.0.0:80");
 services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });;
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 services.AddEndpointsApiExplorer();
 services.AddSwagger();
@@ -54,6 +54,14 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
 });
 
+services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -64,6 +72,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 app.UseHttpLogging();
 app.UseAuthentication();
