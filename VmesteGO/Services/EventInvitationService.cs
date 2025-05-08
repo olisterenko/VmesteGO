@@ -138,9 +138,16 @@ public class EventInvitationService : IEventInvitationService
         await _invitationRepository.SaveChangesAsync(cancellationToken);
         await _userEventRepository.SaveChangesAsync(cancellationToken);
 
+        var statusString = invitation.Status switch
+        {
+            EventInvitationStatus.Accepted => "Принято",
+            EventInvitationStatus.Rejected => "Отклонено",
+            _ => "Ожидает ответа"
+        };
+
         await _notificationService.AddNotificationAsync(
             invitation.SenderId,
-            $"Вы получили ответ от {invitation.Receiver.Username} на свое приглашение на \"{invitation.Event.Title}\". Статус: {invitation.Status}",
+            $"Вы получили ответ от {invitation.Receiver.Username} на свое приглашение на \"{invitation.Event.Title}\". Статус: {statusString}",
             cancellationToken
         );
     }
